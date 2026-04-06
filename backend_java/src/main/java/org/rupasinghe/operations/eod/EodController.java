@@ -32,7 +32,7 @@ public class EodController {
 
         // Check if already closed
         var existing = db.collection("eodSnapshots").document(docId).get().get();
-        if (existing.exists() && Boolean.TRUE.equals(existing.get("frozen"))) {
+        if (existing.exists() && Boolean.TRUE.equals(existing.getBoolean("frozen"))) {
             return ResponseEntity.status(409).body(Map.of("message", "Day already closed for branch " + branchId));
         }
 
@@ -40,16 +40,23 @@ public class EodController {
         var txQuery = db.collection("transactions").whereEqualTo("branchId", branchId).get().get();
         long txCount = txQuery.size();
         double totalDisbursed = 0, totalRepaid = 0;
+
         for (QueryDocumentSnapshot tx : txQuery.getDocuments()) {
-            double amount = tx.getDouble("amount") != null ? tx.getDouble("amount") : 0;
+            Double amountObj = tx.getDouble("amount");
+            double amount = (amountObj != null) ? amountObj : 0.0;
             String type = tx.getString("type");
             if ("PAWN".equals(type)) totalDisbursed += amount;
             else if ("REPAYMENT".equals(type) || "REDEMPTION".equals(type)) totalRepaid += amount;
         }
 
+        double outstanding = totalDisbursed - totalRepaid;
+        double par = (totalDisbursed > 0) ? (outstanding / totalDisbursed) * 100 : 0;
+        if (par < 0) par = 0;
+
         // Read vault balance
-        var vault = db.collection("vaultLedger").document("vault_" + branchId).get().get();
-        double vaultBalance = vault.exists() ? ((Number) vault.get("balance")).doubleValue() : 0;
+        var vaultResult = db.collection("vaultLedger").document("vault_" + branchId).get().get();
+        Double vaultBalanceVal = vaultResult.exists() ? vaultResult.getDouble("balance") : 0.0;
+        double vaultBalance = (vaultBalanceVal != null) ? vaultBalanceVal : 0.0;
 
         Map<String, Object> snapshot = new HashMap<>();
         snapshot.put("branchId", branchId);

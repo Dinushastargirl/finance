@@ -28,11 +28,12 @@ public class ReportingController {
         Map<String, Double> byBranch = new HashMap<>();
 
         for (QueryDocumentSnapshot doc : query.getDocuments()) {
-            double amt = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0;
+            Double amtObj = doc.getDouble("amount");
+            double amt = (amtObj != null) ? amtObj : 0.0;
             String type = doc.getString("type");
             String branch = doc.getString("branchId");
 
-            if ("PAWN".equals(type)) { totalDisbursed += amt; byBranch.merge(branch, amt, Double::sum); }
+            if ("PAWN".equals(type)) { totalDisbursed += amt; if (branch != null) byBranch.merge(branch, amt, Double::sum); }
             else if ("REPAYMENT".equals(type) || "REDEMPTION".equals(type)) totalRepaid += amt;
             else if ("AUCTION".equals(type)) totalAuction += amt;
         }
@@ -71,10 +72,12 @@ public class ReportingController {
         buckets.put("overdue_91_plus", 0.0);
 
         for (QueryDocumentSnapshot doc : query.getDocuments()) {
-            double amt = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0;
-            long ts = doc.getLong("timestamp") != null ? doc.getLong("timestamp") : now;
+            Double amtObj = doc.getDouble("amount");
+            double amt = (amtObj != null) ? amtObj : 0.0;
+            Long tsObj = doc.getLong("timestamp");
+            long ts = (tsObj != null) ? tsObj : now;
             long daysOld = (now - ts) / day;
-
+ 
             if (daysOld <= 30)      buckets.merge("current_0_30", amt, Double::sum);
             else if (daysOld <= 60) buckets.merge("overdue_31_60", amt, Double::sum);
             else if (daysOld <= 90) buckets.merge("overdue_61_90", amt, Double::sum);
@@ -104,10 +107,15 @@ public class ReportingController {
             days.computeIfAbsent(dateKey, k -> new HashMap<>(Map.of(
                 "date", k, "count", 0L, "totalAmount", 0.0
             )));
-            Map<String, Object> day = days.get(dateKey);
-            day.put("count", ((Long) day.get("count")) + 1);
-            double amt = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0;
-            day.put("totalAmount", ((Double) day.get("totalAmount")) + amt);
+            Map<String, Object> dayMap = days.get(dateKey);
+            if (dayMap != null) {
+                Long count = (Long) dayMap.get("count");
+                dayMap.put("count", (count != null ? count : 0L) + 1);
+                Double totalAmt = (Double) dayMap.get("totalAmount");
+                Double amtObj = doc.getDouble("amount");
+                double amt = (amtObj != null) ? amtObj : 0.0;
+                dayMap.put("totalAmount", (totalAmt != null ? totalAmt : 0.0) + amt);
+            }
         }
 
         return ResponseEntity.ok(Map.of("dailySummaries", new ArrayList<>(days.values())));

@@ -1,8 +1,8 @@
 package org.rupasinghe.accounting.gl;
 
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
-import org.rupasinghe.config.MockAuthFilter;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -88,12 +88,13 @@ public class AccountingMappingService {
 
     private void updateVaultBalance(Firestore db, String branchId, String txType, double amount) throws Exception {
         String vaultDocId = "vault_" + branchId;
-        var existing = db.collection("vaultLedger").document(vaultDocId).get().get();
-        double current = existing.exists() ? (double) existing.get("balance") : 500000.0; // seed default
+        DocumentSnapshot vaultDoc = db.collection("vaultLedger").document(vaultDocId).get().get();
+        Double balance = (vaultDoc.exists() && vaultDoc.contains("balance")) ? vaultDoc.getDouble("balance") : 500000.0;
+        double currentBalance = (balance != null) ? balance : 500000.0;
 
         // PAWN = cash goes OUT (disbursement), everything else = cash comes IN
         double newBalance = "PAWN".equals(txType) || "TRANSFER".equals(txType)
-            ? current - amount : current + amount;
+            ? currentBalance - amount : currentBalance + amount;
 
         Map<String, Object> vault = new HashMap<>();
         vault.put("branchId", branchId);

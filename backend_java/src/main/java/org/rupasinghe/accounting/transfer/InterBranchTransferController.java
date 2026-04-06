@@ -84,9 +84,10 @@ public class InterBranchTransferController {
 
         // Credit the vault of the receiving branch
         String fromBranch = transfer.getString("fromBranch");
-        double amount = ((Number) transfer.get("amount")).doubleValue();
-        adjustVault(db, toBranch, amount, true);    // receiver gets cash
-        adjustVault(db, fromBranch, amount, false); // sender lost cash (already deducted on initiate if desired)
+        Double amountVal = transfer.getDouble("amount");
+        double amount = (amountVal != null) ? amountVal : 0.0;
+        if (toBranch != null) adjustVault(db, toBranch, amount, true);    // receiver gets cash
+        if (fromBranch != null) adjustVault(db, fromBranch, amount, false); // sender lost cash (already deducted on initiate if desired)
 
         Map<String, Object> result = new HashMap<>(transfer.getData());
         result.putAll(updates);
@@ -97,7 +98,8 @@ public class InterBranchTransferController {
     private void adjustVault(Firestore db, String branchId, double amount, boolean add) throws Exception {
         String docId = "vault_" + branchId;
         var existing = db.collection("vaultLedger").document(docId).get().get();
-        double balance = existing.exists() ? ((Number) existing.get("balance")).doubleValue() : 500000.0;
+        Double balanceVal = existing.exists() ? existing.getDouble("balance") : 500000.0;
+        double balance = (balanceVal != null) ? balanceVal : 500000.0;
         db.collection("vaultLedger").document(docId).update("balance", add ? balance + amount : balance - amount).get();
     }
 }

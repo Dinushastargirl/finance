@@ -60,12 +60,15 @@ public class JournalEntryController {
         }
 
         for (QueryDocumentSnapshot doc : q.get().get().getDocuments()) {
-            List<Map<String, Object>> entries = (List<Map<String, Object>>) doc.get("entries");
-            if (entries == null) continue;
+            Object entriesObj = doc.get("entries");
+            if (!(entriesObj instanceof List)) continue;
+            List<Map<String, Object>> entries = (List<Map<String, Object>>) entriesObj;
             for (Map<String, Object> entry : entries) {
                 String account = (String) entry.get("account");
-                double amt = ((Number) entry.get("amount")).doubleValue();
-                if ("DEBIT".equals(entry.get("type"))) debits.merge(account, amt, Double::sum);
+                Number amountNum = (Number) entry.get("amount");
+                double amt = (amountNum != null) ? amountNum.doubleValue() : 0.0;
+                String type = (String) entry.get("type");
+                if ("DEBIT".equals(type)) debits.merge(account, amt, Double::sum);
                 else credits.merge(account, amt, Double::sum);
             }
         }

@@ -65,16 +65,18 @@ public class VaultController {
         if (userContext == null || !"ADMIN".equals(userContext.get("role"))) return ResponseEntity.status(403).build();
 
         String branchId = (String) body.get("branchId");
-        double amount = ((Number) body.get("amount")).doubleValue();
+        Number amountNum = (Number) body.get("amount");
+        double amount = (amountNum != null) ? amountNum.doubleValue() : 0.0;
+        if (branchId == null || amount <= 0) return ResponseEntity.badRequest().build();
 
         Firestore db = FirestoreClient.getFirestore();
         String docId = "vault_" + branchId;
-        var existing = db.collection("vaultLedger").document(docId).get().get();
-        double balance = existing.exists() ? ((Number) existing.get("balance")).doubleValue() : 0.0;
+        var existingResult = db.collection("vaultLedger").document(docId).get().get();
+        double currentBalance = (existingResult.exists() && existingResult.contains("balance")) ? existingResult.getDouble("balance") : 0.0;
 
         Map<String, Object> vault = new HashMap<>();
         vault.put("branchId", branchId);
-        vault.put("balance", balance + amount);
+        vault.put("balance", currentBalance + amount);
         vault.put("lastUpdated", System.currentTimeMillis());
         db.collection("vaultLedger").document(docId).set(vault).get();
 
