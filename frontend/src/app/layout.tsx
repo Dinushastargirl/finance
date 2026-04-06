@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import AuthGuard from '@/components/AuthGuard';
 
-const inter = Inter({ subsets: ['latin'] });
+const interFont = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
 export const metadata: Metadata = {
   title: 'Rupasinghe Pawning | Branch Management',
@@ -17,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-slate-50 text-slate-900 dashboard-shell text-lg`} suppressHydrationWarning>
+      <body style={{ fontFamily: interFont }} className="bg-slate-50 text-slate-900 dashboard-shell text-lg" suppressHydrationWarning>
         <AuthGuard>
           {children}
         </AuthGuard>

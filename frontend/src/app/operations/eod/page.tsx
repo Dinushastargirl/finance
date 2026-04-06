@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Lock, Unlock, CheckCircle2, History, AlertCircle, RefreshCcw, Landmark } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export default function EodPage() {
   const [status, setStatus] = useState<any>(null);

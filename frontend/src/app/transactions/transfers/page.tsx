@@ -96,7 +96,7 @@ export default function TransfersPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="font-bold text-xs uppercase tracking-widest text-slate-500">Destination Branch</Label>
-              <Select onValueChange={setToBranch}>
+              <Select onValueChange={(val: any) => setToBranch(val as string)}>
                 <SelectTrigger className="bg-slate-50 font-bold">
                   <SelectValue placeholder="Select Destination" />
                 </SelectTrigger>
