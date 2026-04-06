@@ -11,6 +11,7 @@ import {
   Search, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function LedgerPage() {
   const [journals, setJournals] = useState<any[]>([]);
@@ -25,7 +26,7 @@ export default function LedgerPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/gl/journal', {
+      const res = await fetch(`${API_BASE_URL}/gl/journal`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setJournals(await res.json());

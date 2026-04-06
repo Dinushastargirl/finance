@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRightLeft, Send, CheckCircle2, AlertCircle, RefreshCcw, Landmark, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function TransfersPage() {
   const [transfers, setTransfers] = useState<any[]>([]);
@@ -27,7 +28,7 @@ export default function TransfersPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/transfers', {
+      const res = await fetch(`${API_BASE_URL}/transfers`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setTransfers(await res.json());
@@ -41,7 +42,7 @@ export default function TransfersPage() {
     if (!toBranch || !amount || !desc) { toast.error("Please fill all fields"); return; }
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/transfers/initiate', {
+      const res = await fetch(`${API_BASE_URL}/transfers/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ toBranch, amount: parseFloat(amount), description: desc })

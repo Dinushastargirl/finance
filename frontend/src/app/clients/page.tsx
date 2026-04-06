@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Plus, Search, UserPlus } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api-config"
 
 export default function ClientsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function ClientsPage() {
   const loadClients = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/clients', {
+      const res = await fetch(`${API_BASE_URL}/clients`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -42,7 +43,7 @@ export default function ClientsPage() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/clients', {
+      const res = await fetch(`${API_BASE_URL}/clients`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Lock, Unlock, CheckCircle2, History, AlertCircle, RefreshCcw, Landmark } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function EodPage() {
   const [status, setStatus] = useState<any>(null);
@@ -24,8 +25,8 @@ export default function EodPage() {
       const headers = { 'Authorization': `Bearer ${token}` };
 
       const [sRes, hRes] = await Promise.all([
-        fetch('http://localhost:8080/eod/status', { headers }),
-        fetch('http://localhost:8080/eod/history', { headers })
+        fetch(`${API_BASE_URL}/eod/status`, { headers }),
+        fetch(`${API_BASE_URL}/eod/history`, { headers })
       ]);
 
       if (sRes.ok) setStatus(await sRes.json());
@@ -41,7 +42,7 @@ export default function EodPage() {
     
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/eod/close', {
+      const res = await fetch(`${API_BASE_URL}/eod/close`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Send, FileText, ArrowRightLeft } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api-config"
 
 export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function TransactionsPage() {
   const loadTransactions = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/transactions', {
+      const res = await fetch(`${API_BASE_URL}/transactions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -43,7 +44,7 @@ export default function TransactionsPage() {
     try {
       const token = localStorage.getItem('auth_token');
       // CreateTransactionDto takes: clientId, type, amount, description, targetBranchId
-      const res = await fetch('http://localhost:8080/transactions', {
+      const res = await fetch(`${API_BASE_URL}/transactions`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

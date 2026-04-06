@@ -8,6 +8,7 @@ import {
   RefreshCcw, FileSpreadsheet, FileText, Landmark,
   ChevronRight, Calendar
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -26,9 +27,9 @@ export default function ReportsPage() {
       const headers = { 'Authorization': `Bearer ${token}` };
 
       const [pRes, aRes, dRes] = await Promise.all([
-        fetch('http://localhost:8080/reports/portfolio', { headers }),
-        fetch('http://localhost:8080/reports/aging', { headers }),
-        fetch('http://localhost:8080/reports/daily-summary', { headers })
+        fetch(`${API_BASE_URL}/reports/portfolio`, { headers }),
+        fetch(`${API_BASE_URL}/reports/aging`, { headers }),
+        fetch(`${API_BASE_URL}/reports/daily-summary`, { headers })
       ]);
 
       if (pRes.ok) setPortfolio(await pRes.json());

@@ -10,6 +10,7 @@ import {
   RefreshCcw, AlertTriangle, Building2, Wallet, 
   ArrowUpRight, FileText, LayoutDashboard, Database
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function ExecutiveDashboard() {
   const [loading, setLoading] = useState(true);
@@ -29,10 +30,10 @@ export default function ExecutiveDashboard() {
       const headers = { 'Authorization': `Bearer ${token}` };
 
       const [pRes, eRes, jRes, vRes] = await Promise.all([
-        fetch('http://localhost:8080/reports/portfolio', { headers }),
-        fetch('http://localhost:8080/eod/status', { headers }),
-        fetch('http://localhost:8080/gl/journal', { headers }),
-        fetch('http://localhost:8080/vault', { headers })
+        fetch(`${API_BASE_URL}/reports/portfolio`, { headers }),
+        fetch(`${API_BASE_URL}/eod/status`, { headers }),
+        fetch(`${API_BASE_URL}/gl/journal`, { headers }),
+        fetch(`${API_BASE_URL}/vault`, { headers })
       ]);
 
       if (pRes.ok) setPortfolio(await pRes.json());

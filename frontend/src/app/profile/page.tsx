@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { UserCircle, Pencil, Lock, Camera, Building2, Mail, Phone, User } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -56,7 +57,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem('auth_token');
       const userId = user?.id;
-      const res = await fetch(`http://localhost:8080/users/${userId}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ firstName, lastName, phone, email })
@@ -82,7 +83,7 @@ export default function ProfilePage() {
     if (newPwd.length < 6) { setPwdError("Password must be at least 6 characters."); return; }
     try {
       const token = localStorage.getItem('auth_token');
-      await fetch(`http://localhost:8080/users/${user?.id}/password`, {
+      await fetch(`${API_BASE_URL}/users/${user?.id}/password`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
