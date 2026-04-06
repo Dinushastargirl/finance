@@ -17,15 +17,15 @@ export default function ProfilePage() {
 
   // Edit form state
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName]   = useState('');
-  const [phone, setPhone]         = useState('');
-  const [email, setEmail]         = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   // Password form state
   const [currentPwd, setCurrentPwd] = useState('');
-  const [newPwd, setNewPwd]         = useState('');
+  const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
-  const [pwdError, setPwdError]     = useState('');
+  const [pwdError, setPwdError] = useState('');
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -88,7 +88,7 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
       });
-    } catch(_) {}
+    } catch (_) { }
     setCurrentPwd(''); setNewPwd(''); setConfirmPwd('');
     setIsPasswordOpen(false);
   };
@@ -113,7 +113,7 @@ export default function ProfilePage() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {/* Cover gradient */}
         <div className="h-24 bg-gradient-to-r from-blue-600 to-indigo-600" />
-        
+
         <div className="px-8 pb-8 -mt-12">
           {/* Avatar */}
           <div className="relative inline-block">
@@ -144,19 +144,19 @@ export default function ProfilePage() {
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Email Address</p>
-              <p className="font-bold text-slate-700 flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400"/>{user?.email || '—'}</p>
+              <p className="font-bold text-slate-700 flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" />{user?.email || '—'}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Phone Number</p>
-              <p className="font-bold text-slate-700 flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400"/>{user?.phone || '—'}</p>
+              <p className="font-bold text-slate-700 flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400" />{user?.phone || '—'}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Branch ID</p>
-              <p className="font-bold text-slate-700 flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-400"/>{user?.branchId || '—'}</p>
+              <p className="font-bold text-slate-700 flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-400" />{user?.branchId || '—'}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Role</p>
-              <p className="font-bold text-slate-700 flex items-center gap-2"><User className="h-4 w-4 text-slate-400"/>
+              <p className="font-bold text-slate-700 flex items-center gap-2"><User className="h-4 w-4 text-slate-400" />
                 <span className={`px-2 py-0.5 rounded-full text-xs font-black border ${user?.role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                   {user?.role}
                 </span>
@@ -176,7 +176,7 @@ export default function ProfilePage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-black"><Pencil className="h-5 w-5 text-blue-600"/>Edit Profile</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black"><Pencil className="h-5 w-5 text-blue-600" />Edit Profile</DialogTitle>
             <DialogDescription>Update your personal details. Changes are saved immediately.</DialogDescription>
           </DialogHeader>
 
@@ -225,7 +225,7 @@ export default function ProfilePage() {
       <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-black"><Lock className="h-5 w-5 text-amber-600"/>Change Password</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black"><Lock className="h-5 w-5 text-amber-600" />Change Password</DialogTitle>
             <DialogDescription>Enter your current password and choose a new one.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
