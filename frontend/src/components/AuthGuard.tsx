@@ -2,14 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 
 // Construct DashboardShell directly in the Client Component to avoid serializing functions across boundaries
 const DashboardShell = ({ children, user, onLogout }: { children: React.ReactNode, user: any, onLogout: () => void }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen w-full">
-      <aside className="w-72 border-r border-slate-200 bg-white flex flex-col hidden md:flex shadow-sm shrink-0">
-        <div className="p-6 border-b border-slate-200">
+    <div className="flex min-h-screen w-full relative">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 border-r border-slate-200 bg-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:shadow-sm shrink-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
           <h1 className="text-2xl font-black text-blue-900 tracking-tight">Rupasinghe Pawning</h1>
+          <button className="md:hidden p-2 -mr-2 text-slate-500 hover:bg-slate-100 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
           {/* Portfolio Management */}
@@ -55,9 +69,15 @@ const DashboardShell = ({ children, user, onLogout }: { children: React.ReactNod
         </div>
       </aside>
       
-      <main className="flex-1 flex flex-col bg-slate-50 w-full overflow-hidden">
-        <header className="h-20 border-b border-slate-200 flex items-center px-8 bg-white shadow-sm shrink-0">
-          <h2 className="text-xl font-bold text-slate-800">Branch Management</h2>
+      <main className="flex-1 flex flex-col bg-slate-50 w-full overflow-hidden min-w-0">
+        <header className="h-20 border-b border-slate-200 flex items-center px-6 md:px-8 bg-white shadow-sm shrink-0">
+          <button 
+            className="md:hidden p-2 -ml-2 mr-4 text-slate-600 hover:bg-slate-100 rounded-lg" 
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+          <h2 className="text-xl font-bold text-slate-800 truncate">Branch Management</h2>
         </header>
         <div className="flex-1 p-8 overflow-y-auto">
           {children}

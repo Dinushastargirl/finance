@@ -6,8 +6,21 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.rupasinghe.config.MockAuthFilter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
+import java.io.ByteArrayOutputStream;
 import java.util.*;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 
 @RestController
 @RequestMapping("/reports")
@@ -118,6 +131,105 @@ public class ReportingController {
             }
         }
 
-        return ResponseEntity.ok(Map.of("dailySummaries", new ArrayList<>(days.values())));
+    @GetMapping(value = "/export/master", produces = "text/csv")
+    public ResponseEntity<byte[]> exportMasterCSV() throws Exception {
+        Map<String, String> userContext = MockAuthFilter.securityContext.get();
+        if (userContext == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Firestore db = FirestoreClient.getFirestore();
+        var query = "ADMIN".equals(userContext.get("role"))
+            ? db.collection("transactions").get().get()
+            : db.collection("transactions").whereEqualTo("branchId", userContext.get("branchId")).get().get();
+
+        StringBuilder csv = new StringBuilder("TransactionID,Type,Amount,BranchID,Timestamp\n");
+        for (QueryDocumentSnapshot doc : query.getDocuments()) {
+            csv.append(doc.getId()).append(",")
+               .append(doc.getString("type")).append(",")
+               .append(doc.getDouble("amount")).append(",")
+               .append(doc.getString("branchId")).append(",")
+               .append(doc.getLong("timestamp")).append("\n");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=master_export.csv");
+        return ResponseEntity.ok().headers(headers).body(csv.toString().getBytes());
+    }
+
+    @GetMapping(value = "/export/xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<byte[]> exportXLSX() throws Exception {
+        Map<String, String> userContext = MockAuthFilter.securityContext.get();
+        if (userContext == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Firestore db = FirestoreClient.getFirestore();
+        var query = "ADMIN".equals(userContext.get("role"))
+            ? db.collection("transactions").get().get()
+            : db.collection("transactions").whereEqualTo("branchId", userContext.get("branchId")).get().get();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Transactions");
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("ID");
+            headerRow.createCell(1).setCellValue("Type");
+            headerRow.createCell(2).setCellValue("Amount");
+            headerRow.createCell(3).setCellValue("Branch");
+
+            int rowIdx = 1;
+            for (QueryDocumentSnapshot doc : query.getDocuments()) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(doc.getId());
+                row.createCell(1).setCellValue(doc.getString("type") != null ? doc.getString("type") : "");
+                Double amt = doc.getDouble("amount");
+                row.createCell(2).setCellValue(amt != null ? amt : 0.0);
+                row.createCell(3).setCellValue(doc.getString("branchId") != null ? doc.getString("branchId") : "");
+            }
+
+            workbook.write(out);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=portfolio_export.xlsx");
+            return ResponseEntity.ok().headers(headers).body(out.toByteArray());
+        }
+    }
+
+    @GetMapping(value = "/export/pdf", produces = "application/pdf")
+    public ResponseEntity<byte[]> exportPDF() throws Exception {
+        Map<String, String> userContext = MockAuthFilter.securityContext.get();
+        if (userContext == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Firestore db = FirestoreClient.getFirestore();
+        var query = "ADMIN".equals(userContext.get("role"))
+            ? db.collection("transactions").get().get()
+            : db.collection("transactions").whereEqualTo("branchId", userContext.get("branchId")).get().get();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document();
+            PdfWriter.getInstance(document, out);
+            document.open();
+            
+            document.add(new Paragraph("Rupasinghe Pawning - Portfolio Risk Report"));
+            document.add(new Paragraph(" "));
+
+            PdfPTable table = new PdfPTable(4);
+            table.addCell(new PdfPCell(new Phrase("Transaction ID")));
+            table.addCell(new PdfPCell(new Phrase("Type")));
+            table.addCell(new PdfPCell(new Phrase("Amount")));
+            table.addCell(new PdfPCell(new Phrase("Branch")));
+
+            for (QueryDocumentSnapshot doc : query.getDocuments()) {
+                table.addCell(doc.getId());
+                String type = doc.getString("type");
+                table.addCell(type != null ? type : "");
+                Double amt = doc.getDouble("amount");
+                table.addCell(amt != null ? amt.toString() : "0.0");
+                String branchId = doc.getString("branchId");
+                table.addCell(branchId != null ? branchId : "");
+            }
+
+            document.add(table);
+            document.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=portfolio_report.pdf");
+            return ResponseEntity.ok().headers(headers).body(out.toByteArray());
+        }
     }
 }

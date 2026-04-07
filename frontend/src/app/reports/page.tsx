@@ -44,6 +44,28 @@ export default function ReportsPage() {
     setLoading(false);
   };
 
+  const downloadFile = async (endpoint: string, filename: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to download");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Error generating export.");
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-64"><RefreshCcw className="animate-spin h-8 w-8 text-blue-600" /></div>;
 
   return (
@@ -60,7 +82,7 @@ export default function ReportsPage() {
           <Button onClick={loadReports} variant="outline" className="gap-2 font-bold border-slate-300">
             <RefreshCcw className="h-4 w-4" /> Recalculate Risk
           </Button>
-          <Button className="bg-slate-900 hover:bg-slate-800 font-bold px-6 shadow-lg shadow-slate-100 gap-2">
+          <Button onClick={() => downloadFile('/reports/export/master', 'master_export.csv')} className="bg-slate-900 hover:bg-slate-800 font-bold px-6 shadow-lg shadow-slate-100 gap-2">
             <Download className="h-4 w-4" /> Master Export
           </Button>
         </div>
@@ -169,10 +191,10 @@ export default function ReportsPage() {
                 Generate full forensic audit reports for regulatory compliance.
               </p>
               <div className="grid grid-cols-2 gap-4">
-                <Button className="bg-emerald-600 hover:bg-emerald-700 font-black gap-2 shadow-lg shadow-emerald-900/20">
+                <Button onClick={() => downloadFile('/reports/export/xlsx', 'portfolio_export.xlsx')} className="bg-emerald-600 hover:bg-emerald-700 font-black gap-2 shadow-lg shadow-emerald-900/20">
                   <FileSpreadsheet className="h-4 w-4" /> Download .XLSX
                 </Button>
-                <Button className="bg-rose-600 hover:bg-rose-700 font-black gap-2 shadow-lg shadow-rose-900/20">
+                <Button onClick={() => downloadFile('/reports/export/pdf', 'portfolio_report.pdf')} className="bg-rose-600 hover:bg-rose-700 font-black gap-2 shadow-lg shadow-rose-900/20">
                   <FileText className="h-4 w-4" /> Download .PDF
                 </Button>
               </div>
