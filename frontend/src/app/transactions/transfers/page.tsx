@@ -75,13 +75,13 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-20">
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Inter-Branch Transfers</h1>
-          <p className="text-slate-500 font-medium tracking-tight">Dual-control physical & cash movement mapping.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Inter-Branch Transfers</h1>
+          <p className="text-sm text-slate-500 mt-1">Dual-control physical &amp; cash movement mapping.</p>
         </div>
-        <Button onClick={loadTransfers} variant="ghost" className="gap-2 text-slate-400">
-          <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        <Button onClick={loadTransfers} variant="outline" className="gap-2 text-slate-500 border-slate-200 w-full md:w-auto">
+          <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </Button>
       </div>
 
@@ -96,9 +96,9 @@ export default function TransfersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-bold text-xs uppercase tracking-widest text-slate-500">Destination Branch</Label>
+              <Label className="font-medium text-xs uppercase tracking-widest text-slate-500">Destination Branch</Label>
               <Select onValueChange={(val: any) => setToBranch(val as string)}>
-                <SelectTrigger className="bg-slate-50 font-bold">
+                <SelectTrigger className="bg-slate-50 font-medium">
                   <SelectValue placeholder="Select Destination" />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,14 +107,14 @@ export default function TransfersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-xs uppercase tracking-widest text-slate-500">Amount (LKR)</Label>
-              <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 font-black h-12 text-lg" />
+              <Label className="font-medium text-xs uppercase tracking-widest text-slate-500">Amount (LKR)</Label>
+              <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 font-bold h-12 text-lg" />
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-xs uppercase tracking-widest text-slate-500">Description / Item details</Label>
-              <Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Physical cash or item IDs" className="bg-slate-50 font-medium" />
+              <Label className="font-medium text-xs uppercase tracking-widest text-slate-500">Description / Item details</Label>
+              <Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Physical cash or item IDs" className="bg-slate-50" />
             </div>
-            <Button onClick={handleInitiate} className="w-full bg-blue-600 hover:bg-blue-700 font-black h-12 gap-2 mt-2 shadow-lg shadow-blue-100">
+            <Button onClick={handleInitiate} className="w-full bg-blue-600 hover:bg-blue-700 font-semibold h-11 gap-2 mt-2">
               <ArrowRightLeft className="h-4 w-4" /> Send to Destination
             </Button>
           </CardContent>

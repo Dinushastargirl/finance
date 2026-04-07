@@ -79,7 +79,7 @@ const DashboardShell = ({ children, user, onLogout }: { children: React.ReactNod
           </button>
           <h2 className="text-xl font-bold text-slate-800 truncate">Branch Management</h2>
         </header>
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
           {children}
         </div>
       </main>

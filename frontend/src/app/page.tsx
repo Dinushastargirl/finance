@@ -45,24 +45,24 @@ export default function Home() {
   return (
     <div className="space-y-8">
       {/* Header with EOD status */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Today's Overview</h1>
-          <p className="text-slate-500 font-bold">{user?.branchName} Branch — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Today's Overview</h1>
+          <p className="text-slate-500 text-sm font-medium mt-1">{user?.branchName} Branch — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
           {isClosed ? (
-            <div className="bg-rose-100 text-rose-800 px-4 py-2 rounded-lg font-black flex items-center gap-2 border border-rose-200">
-              <Lock className="h-4 w-4" /> DAY CLOSED (FROZEN)
+            <div className="bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-rose-200">
+              <Lock className="h-4 w-4" /> Day Closed (Frozen)
             </div>
           ) : (
-            <div className="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg font-black flex items-center gap-2 border border-emerald-200">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> BRANCH OPEN
+            <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-emerald-200">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Branch Open
             </div>
           )}
           {user?.role === 'ADMIN' && (
-            <Link href="/dashboard/executive">
-              <Button className="bg-slate-900 hover:bg-slate-800 font-bold gap-2">
+            <Link href="/dashboard/executive" className="w-full md:w-auto">
+              <Button variant="outline" className="font-semibold gap-2 w-full md:w-auto border-slate-300">
                 <ShieldCheck className="h-4 w-4" /> HQ Executive View
               </Button>
             </Link>
@@ -72,70 +72,70 @@ export default function Home() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Real-time Vault Card */}
-        <Card className="hover:shadow-lg transition-all bg-white border-slate-200 border-b-4 border-b-emerald-500 overflow-hidden relative">
+        <Card className="bg-white border-slate-200 overflow-hidden relative shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-wider">Money-on-Hand (Vault)</CardTitle>
-            <Wallet className="h-6 w-6 text-emerald-600" />
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Money-on-Hand (Vault)</CardTitle>
+            <Wallet className="h-5 w-5 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900 tracking-tighter">
+            <div className="text-2xl font-bold text-slate-900 tracking-tight">
               Rs. {vault?.balance?.toLocaleString() || '0'}
             </div>
-            <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-wide">Live Branch Balance</p>
+            <p className="text-xs font-medium text-slate-400 mt-1">Live Branch Balance</p>
             <div className="absolute top-0 right-0 p-2 opacity-5">
               <Landmark className="h-16 w-16" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow bg-white border-slate-200">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-wider">Today's Transactions</CardTitle>
-            <Banknote className="h-6 w-6 text-blue-600" />
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Today's Transactions</CardTitle>
+            <Banknote className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900 tracking-tighter">{eod?.snapshot?.transactionCount || '0'}</div>
-            <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-wide">Volume since opening</p>
+            <div className="text-2xl font-bold text-slate-900 tracking-tight">{eod?.snapshot?.transactionCount || '0'}</div>
+            <p className="text-xs font-medium text-slate-400 mt-1">Volume since opening</p>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow bg-white border-slate-200">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-wider">Active Pawn Items</CardTitle>
-            <Package className="h-6 w-6 text-indigo-600" />
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Pawn Items</CardTitle>
+            <Package className="h-5 w-5 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900 tracking-tighter">24</div>
-            <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-wide">In-Branch Storage</p>
+            <div className="text-2xl font-bold text-slate-900 tracking-tight">24</div>
+            <p className="text-xs font-medium text-slate-400 mt-1">In-Branch Storage</p>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow bg-white border-slate-200">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-wider">Due Payments</CardTitle>
-            <AlertCircle className="h-6 w-6 text-rose-500" />
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Payments</CardTitle>
+            <AlertCircle className="h-5 w-5 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-rose-600 tracking-tighter">0</div>
-            <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-wide">Portfolio at risk</p>
+            <div className="text-2xl font-bold text-rose-600 tracking-tight">0</div>
+            <p className="text-xs font-medium text-slate-400 mt-1">Portfolio at risk</p>
           </CardContent>
         </Card>
       </div>
 
       {!isClosed && (
-        <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-xl flex justify-between items-center">
+        <div className="bg-white border-l-4 border-l-emerald-500 border border-slate-200 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
           <div className="flex gap-4 items-center">
-            <div className="bg-emerald-600 p-3 rounded-full text-white">
-              <Banknote className="h-6 w-6" />
+            <div className="bg-emerald-50 p-2 rounded-full text-emerald-600 shrink-0">
+              <Banknote className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-black text-slate-800">Operational Discipline Required</p>
-              <p className="text-sm text-slate-600 font-medium">Please ensure the vault balance matches your physical till before EOD closing.</p>
+              <p className="font-bold text-slate-800">Operational Discipline Required</p>
+              <p className="text-sm text-slate-500 mt-0.5">Please ensure the vault balance matches your physical till before EOD closing.</p>
             </div>
           </div>
-          <Link href="/operations/eod">
-            <Button className="bg-emerald-700 hover:bg-emerald-800 font-bold gap-2">
-              Process EOD Close <ArrowRight className="h-4 w-4" />
+          <Link href="/operations/eod" className="w-full md:w-auto mt-2 md:mt-0">
+            <Button className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
+              Process EOD Close <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </Link>
         </div>

@@ -65,25 +65,25 @@ export default function EodPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Status Header */}
-      <div className={`p-8 rounded-2xl border flex justify-between items-center ${
-        isClosed ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'
+      <div className={`p-6 rounded-xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${
+        isClosed ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'
       }`}>
-        <div className="flex gap-6 items-center">
-          <div className={`p-4 rounded-full ${isClosed ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
-            {isClosed ? <Lock className="h-8 w-8" /> : <Unlock className="h-8 w-8" />}
+        <div className="flex gap-4 items-center">
+          <div className={`p-3 rounded-full shrink-0 ${isClosed ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+            {isClosed ? <Lock className="h-6 w-6" /> : <Unlock className="h-6 w-6" />}
           </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-800">
               {isClosed ? 'Branch Closed (Frozen)' : 'Branch Operations Active'}
             </h1>
-            <p className="font-bold text-slate-500 uppercase tracking-widest text-xs mt-1">
+            <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">
               Scope: {status?.branchId} | Date: {status?.date}
             </p>
           </div>
         </div>
         {!isClosed && (
-          <Button onClick={handleCloseDay} size="lg" className="bg-rose-600 hover:bg-rose-700 font-bold px-8 shadow-lg shadow-rose-200 gap-2">
-            <CheckCircle2 className="h-5 w-5" /> Execute EOD Close
+          <Button onClick={handleCloseDay} className="bg-rose-600 hover:bg-rose-700 font-semibold px-6 gap-2 w-full md:w-auto">
+            <CheckCircle2 className="h-4 w-4" /> Execute EOD Close
           </Button>
         )}
       </div>
@@ -96,22 +96,22 @@ export default function EodPage() {
               <Landmark className="h-5 w-5 text-blue-600" /> Today's Counters
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Transaction Count</p>
-              <p className="text-3xl font-black text-slate-900">{status?.snapshot?.transactionCount || 0}</p>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Transaction Count</p>
+              <p className="text-2xl font-bold text-slate-900">{status?.snapshot?.transactionCount || 0}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Disbursed</p>
-              <p className="text-3xl font-black text-slate-900">Rs. {status?.snapshot?.totalDisbursed?.toLocaleString() || 0}</p>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Total Disbursed</p>
+              <p className="text-2xl font-bold text-slate-900">Rs. {status?.snapshot?.totalDisbursed?.toLocaleString() || 0}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Repaid</p>
-              <p className="text-3xl font-black text-slate-900">Rs. {status?.snapshot?.totalRepaid?.toLocaleString() || 0}</p>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Total Repaid</p>
+              <p className="text-2xl font-bold text-slate-900">Rs. {status?.snapshot?.totalRepaid?.toLocaleString() || 0}</p>
             </div>
             <div className="pt-4 border-t border-slate-100">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Vault Final Balance</p>
-              <p className="text-3xl font-black text-emerald-700">Rs. {status?.snapshot?.vaultBalance?.toLocaleString() || 0}</p>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Vault Final Balance</p>
+              <p className="text-2xl font-bold text-emerald-700">Rs. {status?.snapshot?.vaultBalance?.toLocaleString() || 0}</p>
             </div>
           </CardContent>
         </Card>

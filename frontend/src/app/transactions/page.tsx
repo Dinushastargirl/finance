@@ -73,56 +73,58 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Ledger Operations</h1>
-          <p className="text-slate-500 font-medium">Branch-specific transaction history and transfers.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Ledger Operations</h1>
+          <p className="text-sm text-slate-500 mt-1">Branch-specific transaction history and transfers.</p>
         </div>
-        
-        <Button onClick={() => setIsOpen(true)} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold h-10 px-4">
+        <Button onClick={() => setIsOpen(true)} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold h-10 px-4 w-full md:w-auto shrink-0">
           <Send className="h-4 w-4" /> Initiate Branch Transfer
         </Button>
-        
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-blue-600"/> Branch Cash Transfer</DialogTitle>
-              <DialogDescription>
-                Transfer working capital between operational branches.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label className="font-bold">Target Destination Branch</Label>
-                <Select onValueChange={(val: any) => setTargetBranchId(val as string)} value={targetBranchId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select receiver branch..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="KOT">Kotikawatta (KOT)</SelectItem>
-                    <SelectItem value="MRG">Maharagama (MRG)</SelectItem>
-                    <SelectItem value="BRL">Borella (BRL)</SelectItem>
-                    <SelectItem value="WAT">Wattala (WAT)</SelectItem>
-                    <SelectItem value="KIR">Kiribathgoda (KIR)</SelectItem>
-                    <SelectItem value="HQ">Head Office (HQ)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label className="font-bold text-rose-600">Transfer Capital Amount (Rs.)</Label>
-                <Input value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="500000" className="border-rose-300 bg-rose-50" />
-              </div>
-              <div className="grid gap-2">
-                <Label className="font-bold">Audit Reference Log</Label>
-                <Input value={description} onChange={e=>setDescription(e.target.value)} placeholder="E.g. Daily Vault Balancing" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button onClick={handleTransfer} className="bg-slate-900 hover:bg-slate-800 font-bold w-full text-white">Execute Secure Transfer</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Transfer Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-blue-600"/> Branch Cash Transfer</DialogTitle>
+            <DialogDescription>
+              Transfer working capital between operational branches.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label className="font-medium text-slate-700">Target Destination Branch</Label>
+              <Select onValueChange={(val: any) => setTargetBranchId(val as string)} value={targetBranchId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select receiver branch..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="KOT">Kotikawatta (KOT)</SelectItem>
+                  <SelectItem value="MRG">Maharagama (MRG)</SelectItem>
+                  <SelectItem value="BRL">Borella (BRL)</SelectItem>
+                  <SelectItem value="WAT">Wattala (WAT)</SelectItem>
+                  <SelectItem value="KIR">Kiribathgoda (KIR)</SelectItem>
+                  <SelectItem value="HQ">Head Office (HQ)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label className="font-medium text-slate-700">Transfer Capital Amount (Rs.)</Label>
+              <Input value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="500000" className="border-slate-300" />
+            </div>
+            <div className="grid gap-2">
+              <Label className="font-medium text-slate-700">Audit Reference Log</Label>
+              <Input value={description} onChange={e=>setDescription(e.target.value)} placeholder="E.g. Daily Vault Balancing" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+            <Button onClick={handleTransfer} className="bg-slate-900 hover:bg-slate-800 font-semibold text-white">Execute Transfer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">

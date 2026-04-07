@@ -63,51 +63,54 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Clients Management</h1>
-          <p className="text-slate-500 font-medium">Record and track branch customer interactions.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Clients Management</h1>
+          <p className="text-sm text-slate-500 mt-1">Record and track branch customer interactions.</p>
         </div>
-        
-        <Button onClick={() => setIsOpen(true)} className="gap-2 bg-blue-600 hover:bg-blue-700 h-10 px-4 text-white">
+        <Button onClick={() => setIsOpen(true)} className="gap-2 bg-blue-600 hover:bg-blue-700 h-10 px-4 text-white w-full md:w-auto shrink-0">
           <Plus className="h-4 w-4" /> New Customer
         </Button>
-        
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-[450px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5 text-blue-600"/> Register Customer</DialogTitle>
-              <DialogDescription>
-                Add a new customer profile to this branch.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nic" className="font-bold">National Identity Card (NIC)</Label>
-                <Input value={nic} onChange={e=>setNic(e.target.value)} id="nic" placeholder="e.g. 941234567V" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="firstName" className="font-bold">First Name</Label>
-                  <Input value={firstName} onChange={e=>setFirstName(e.target.value)} id="firstName" placeholder="Saman" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="lastName" className="font-bold">Last Name</Label>
-                  <Input value={lastName} onChange={e=>setLastName(e.target.value)} id="lastName" placeholder="Kumara" />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone" className="font-bold">Phone Number</Label>
-                <Input value={phone} onChange={e=>setPhone(e.target.value)} id="phone" placeholder="077 123 4567" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">Save Customer</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* New Customer Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5 text-blue-600"/> Register Customer</DialogTitle>
+            <DialogDescription>
+              Add a new customer profile to this branch.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nic" className="font-medium text-slate-700">National Identity Card (NIC)</Label>
+              <Input value={nic} onChange={e=>setNic(e.target.value)} id="nic" placeholder="e.g. 941234567V" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="firstName" className="font-medium text-slate-700">First Name</Label>
+                <Input value={firstName} onChange={e=>setFirstName(e.target.value)} id="firstName" placeholder="Saman" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lastName" className="font-medium text-slate-700">Last Name</Label>
+                <Input value={lastName} onChange={e=>setLastName(e.target.value)} id="lastName" placeholder="Kumara" />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone" className="font-medium text-slate-700">Phone Number</Label>
+              <Input value={phone} onChange={e=>setPhone(e.target.value)} id="phone" placeholder="077 123 4567" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-2">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">Save Customer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Search */}
 
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
