@@ -15,7 +15,7 @@ public class SecurityConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 // Allow our Next.js frontend to bypass CORS block
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", "http://localhost:3002")
+                        .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
