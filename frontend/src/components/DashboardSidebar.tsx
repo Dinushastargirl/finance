@@ -85,14 +85,14 @@ export default function DashboardSidebar() {
       {/* Branding Section */}
       <div className="h-28 flex items-center px-6 mb-2 relative shrink-0">
         <div className="flex items-center gap-4">
-          <div className="min-w-[56px] h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 ring-2 ring-white/10 group-hover:scale-110 transition-transform duration-300 transform rotate-3 relative overflow-hidden">
+          <div className="h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 ring-2 ring-white/10 group-hover:scale-110 transition-transform duration-300 relative overflow-hidden shrink-0">
              <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent" />
              <span className="text-white font-black text-xl tracking-tighter relative z-10">RP</span>
           </div>
           {!isCollapsed && (
             <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500">
-              <span className="text-white font-black tracking-tighter text-2xl leading-none">RUPASINGHE</span>
-              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] mt-2 opacity-90">Management Hub</span>
+              <span className="text-white font-black tracking-tighter text-2xl leading-tight">RUPASINGHE</span>
+              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] opacity-90">Management Hub</span>
             </div>
           )}
         </div>
