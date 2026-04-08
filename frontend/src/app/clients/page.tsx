@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Plus, Search, UserPlus } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { API_BASE_URL } from "@/lib/api-config"
 
 export default function ClientsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +22,12 @@ export default function ClientsPage() {
 
   const loadClients = async () => {
     try {
-      const { data, error } = await supabase.from('client').select('*').order('createdAt', { ascending: false });
-      if (error) {
-        throw error;
-      }
-      if (data) {
-        setClients(data);
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE_URL}/clients`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setClients(await res.json());
       }
     } catch(err) {
       console.error(err);
@@ -42,20 +42,20 @@ export default function ClientsPage() {
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase.from('client').insert([{
-        nationalId: nic,
-        firstName,
-        lastName,
-        phone,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString()
-      }]);
-      if (error) {
-        throw error;
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API_BASE_URL}/clients`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nationalId: nic, firstName, lastName, phone })
+      });
+      if (res.ok) {
+        setIsOpen(false);
+        setNic(''); setFirstName(''); setLastName(''); setPhone('');
+        loadClients();
       }
-      setIsOpen(false);
-      setNic(''); setFirstName(''); setLastName(''); setPhone('');
-      loadClients();
     } catch(err) {
       console.error(err);
     }
