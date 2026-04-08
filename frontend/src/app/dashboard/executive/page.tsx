@@ -77,44 +77,53 @@ export default function ExecutiveDashboard() {
     const toastId = toast.loading("Generating Master Report PDF...");
 
     try {
-      // Small delay to ensure any active tooltips or hover states settle
+      // Small delay to ensure UI is stable
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const canvas = await html2canvas(dashboardRef.current, {
-        scale: 1.5,
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: true,
         backgroundColor: "#f8fafc",
-        windowWidth: 1400,
+        windowWidth: 1200, // Fixed width for consistent layout
         onclone: (clonedDoc) => {
-            const root = clonedDoc.documentElement;
-            // CRITICAL: html2canvas v1.4.1 crashes on oklch/lab colors used in Tailwind v4.
-            // We force standard HEX/RGB fallbacks for the capture clone.
-            root.style.setProperty('--primary', '#4c2188'); 
-            root.style.setProperty('--background', '#f8fafc');
-            root.style.setProperty('--foreground', '#1e293b');
-            root.style.setProperty('--card', 'rgba(255, 255, 255, 0.9)');
-            root.style.setProperty('--border', '#e2e8f0');
-            
-            // Fix any other elements that might use oklch explicitly
-            const elementsWithOklch = clonedDoc.querySelectorAll('*');
-            elementsWithOklch.forEach((el: any) => {
-                const style = clonedDoc.defaultView?.getComputedStyle(el);
-                if (style && (style.color?.includes('oklch') || style.backgroundColor?.includes('oklch'))) {
-                    // Force standard colors for common UI elements
-                    if (el.classList.contains('text-primary')) el.style.color = '#4c2188';
-                    if (el.classList.contains('bg-primary')) el.style.backgroundColor = '#4c2188';
+            // STEP 1: Inject a "Safe Style" block to override modern CSS that crashes the capture tool
+            const style = clonedDoc.createElement('style');
+            style.innerHTML = `
+                /* Strip problematic filters and animations */
+                * { 
+                    backdrop-filter: none !important; 
+                    -webkit-backdrop-filter: none !important;
+                    transition: none !important;
+                    animation: none !important;
+                    box-shadow: none !important;
+                    text-shadow: none !important;
                 }
-            });
+                /* Force standard colors over modern oklch/lab variables */
+                :root {
+                    --primary: #4c2188 !important;
+                    --background: #f8fafc !important;
+                    --foreground: #1e293b !important;
+                    --card: #ffffff !important;
+                    --border: #e2e8f0 !important;
+                    --emerald-600: #059669 !important;
+                    --rose-600: #e11d48 !important;
+                }
+                /* Ensure visibility */
+                .glass { background: white !important; border: 1px solid #e2e8f0 !important; }
+                .bg-primary { background-color: #4c2188 !important; }
+                .text-primary { color: #4c2188 !important; }
+            `;
+            clonedDoc.head.appendChild(style);
 
-            // Hide the buttons in the exported version
-            const btnArea = clonedDoc.querySelector('.flex.gap-3.w-full.md\\:w-auto') as HTMLElement;
-            if (btnArea) btnArea.style.display = 'none';
+            // Hide UI controls in the export
+            const controls = clonedDoc.querySelector('.flex.gap-3.w-full.md\\:w-auto') as HTMLElement;
+            if (controls) controls.style.display = 'none';
         }
       });
       
-      const imgData = canvas.toDataURL("image/jpeg", 0.75);
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const pdf = new jsPDF({
         orientation: "p",
         unit: "pt",
@@ -123,21 +132,22 @@ export default function ExecutiveDashboard() {
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate layout to fit page
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      
-      // Calculate ratio to fit A4 width
       const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+      
       const finalWidth = imgWidth * ratio;
       const finalHeight = imgHeight * ratio;
 
-      pdf.addImage(imgData, "JPEG", (pageWidth - finalWidth) / 2, 0, finalWidth, finalHeight);
+      pdf.addImage(imgData, "JPEG", (pageWidth - finalWidth) / 2, 20, finalWidth, finalHeight);
       pdf.save(`Executive_Master_Report_${new Date().toISOString().split('T')[0]}.pdf`);
       
-      toast.success("Master Report downloaded.", { id: toastId });
+      toast.success("Master Report downloaded successfully.", { id: toastId });
     } catch (err: any) {
       console.error("PDF Export failed:", err);
-      toast.error(`Failed to generate PDF: ${err.message || 'Unknown error'}`, { id: toastId });
+      toast.error(`Export Error: ${err.message || 'Operation timed out'}`, { id: toastId });
     } finally {
       setExporting(false);
     }
@@ -219,7 +229,7 @@ export default function ExecutiveDashboard() {
             <div className="text-3xl font-black text-emerald-700 tracking-tighter leading-none">
               Rs. {totalVault.toLocaleString()}
             </div>
-            <p className="text-[10px] font-black text-slate-400 mt-3 tracking-widest uppercase">Global Cash-on-hand</p>
+            <p className="text-[10px) font-black text-slate-400 mt-3 tracking-widest uppercase">Global Cash-on-hand</p>
           </CardContent>
         </Card>
 
