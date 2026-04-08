@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import { toast } from "sonner";
 
 export default function ExecutiveDashboard() {
@@ -77,28 +77,23 @@ export default function ExecutiveDashboard() {
     const toastId = toast.loading("Generating Master Report PDF...");
 
     try {
-      // Small delay to ensure UI is stable
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: true,
+      // html-to-image is much faster and handles modern CSS better than html2canvas
+      const canvas = await toCanvas(dashboardRef.current, {
+        quality: 0.95,
         backgroundColor: "#f8fafc",
-        windowWidth: 1200, // Fixed width for consistent layout
-        onclone: (clonedDoc) => {
-            // Hide UI controls in the export
-            const controls = clonedDoc.querySelector('.flex.gap-3.w-full.md\\:w-auto') as HTMLElement;
-            if (controls) controls.style.display = 'none';
-
-            // Ensure background is solid for the capture
-            const body = clonedDoc.body;
-            body.style.backgroundColor = "#f8fafc";
+        style: {
+            transform: 'scale(1)', // Ensure it's captured at actual size
+            borderRadius: '0',
+            backdropFilter: 'none', // Strip complex blurs for the capture
+        },
+        filter: (node: any) => {
+            // Hide the buttons area in the final PDF
+            if (node.classList?.contains('md:w-auto')) return false;
+            return true;
         }
       });
       
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const imgData = canvas.toDataURL("image/jpeg", 0.9);
       const pdf = new jsPDF({
         orientation: "p",
         unit: "pt",
@@ -108,10 +103,10 @@ export default function ExecutiveDashboard() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate layout to fit page
+      // Calculate layout to fit page comfortably
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+      const ratio = Math.min((pageWidth - 40) / imgWidth, (pageHeight - 40) / imgHeight);
       
       const finalWidth = imgWidth * ratio;
       const finalHeight = imgHeight * ratio;
