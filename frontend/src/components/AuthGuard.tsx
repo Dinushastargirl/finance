@@ -38,6 +38,7 @@ const DashboardShell = ({ children, user, onLogout }: { children: React.ReactNod
           {/* Core Banking / Accounting */}
           <div className="space-y-1">
             <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Accounting & GL</p>
+            <a href="/savings" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-600 font-bold transition-colors">Client Accounts</a>
             <a href="/accounting/ledger" className="block px-4 py-2 rounded-lg hover:bg-indigo-50 text-indigo-700 font-black transition-colors">General Ledger</a>
             <a href="/transactions/transfers" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-600 font-bold transition-colors">Vault Transfers</a>
             <a href="/reports" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-600 font-bold transition-colors">Risk Reports</a>
