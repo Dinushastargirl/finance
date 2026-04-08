@@ -94,14 +94,14 @@ export default function VaultTransfersPage() {
             <div className="grid grid-cols-2 gap-4">
                <div className="space-y-2">
                  <Label className="font-bold">Origin Entity</Label>
-                 <Select onValueChange={setFromVault} value={fromVault}>
+                 <Select onValueChange={(val) => val && setFromVault(val)} value={fromVault}>
                     <SelectTrigger><SelectValue placeholder="Select Origin" /></SelectTrigger>
                     <SelectContent>{vaults.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
                  </Select>
                </div>
                <div className="space-y-2">
                  <Label className="font-bold">Destination Entity</Label>
-                 <Select onValueChange={setToVault} value={toVault}>
+                 <Select onValueChange={(val) => val && setToVault(val)} value={toVault}>
                     <SelectTrigger><SelectValue placeholder="Select Destination" /></SelectTrigger>
                     <SelectContent>{vaults.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
                  </Select>
@@ -114,7 +114,7 @@ export default function VaultTransfersPage() {
                </div>
                <div className="space-y-2">
                  <Label className="font-bold">Denomination</Label>
-                 <Select onValueChange={setCurrency} value={currency}>
+                 <Select onValueChange={(val) => val && setCurrency(val)} value={currency}>
                     <SelectTrigger><SelectValue/></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="LKR">LKR (Rs)</SelectItem>
@@ -155,7 +155,7 @@ export default function VaultTransfersPage() {
 
       <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex gap-4">
          <div className="flex-1 max-w-xs">
-             <Select onValueChange={setFilterStatus} value={filterStatus}>
+             <Select onValueChange={(val) => val && setFilterStatus(val)} value={filterStatus}>
                 <SelectTrigger className="font-semibold"><SelectValue/></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Statuses</SelectItem>

@@ -94,7 +94,7 @@ export default function SavingsAccountsPage() {
             </div>
             <div className="space-y-2">
               <Label className="font-bold">Product Type</Label>
-              <Select onValueChange={setNewType} value={newType}>
+              <Select onValueChange={(val) => val && setNewType(val)} value={newType}>
                 <SelectTrigger><SelectValue/></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Savings">Savings Account (3.5% APY)</SelectItem>
@@ -155,7 +155,7 @@ export default function SavingsAccountsPage() {
             />
           </div>
           <div className="flex gap-2">
-             <Select onValueChange={setFilterType} value={filterType}>
+             <Select onValueChange={(val) => val && setFilterType(val)} value={filterType}>
                 <SelectTrigger className="w-40 font-semibold"><SelectValue/></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Types</SelectItem>

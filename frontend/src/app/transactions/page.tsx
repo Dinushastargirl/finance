@@ -86,7 +86,7 @@ export default function TransactionsPage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label className="font-medium text-slate-700">Target Destination Branch</Label>
-              <Select onValueChange={(val: any) => setTargetBranchId(val as string)} value={targetBranchId}>
+              <Select onValueChange={(val) => val && setTargetBranchId(val)} value={targetBranchId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select receiver branch..." />
                 </SelectTrigger>
