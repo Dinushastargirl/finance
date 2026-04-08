@@ -6,14 +6,16 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, UserPlus, Sparkles, Filter, MoreVertical } from "lucide-react"
+import { Plus, Search, UserPlus, Sparkles, Filter, MoreVertical, RefreshCcw } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
 export default function ClientsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form State
   const [nic, setNic] = useState('');
@@ -24,14 +26,11 @@ export default function ClientsPage() {
   const loadClients = async () => {
     try {
       const { data, error } = await supabase.from('client').select('*').order('createdAt', { ascending: false });
-      if (error) {
-        throw error;
-      }
-      if (data) {
-        setClients(data);
-      }
+      if (error) throw error;
+      if (data) setClients(data);
     } catch(err) {
       console.error(err);
+      toast.error("Failed to load customer directory.");
     } finally {
       setLoading(false);
     }
@@ -42,6 +41,16 @@ export default function ClientsPage() {
   }, []);
 
   const handleSave = async () => {
+    if (!nic || !firstName || !lastName) {
+      toast.error("Missing Information", {
+        description: "NIC, First Name, and Last Name are required."
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const toastId = toast.loading("Saving customer profile...");
+
     try {
       const { error } = await supabase.from('client').insert([{
         nationalId: nic,
@@ -51,14 +60,22 @@ export default function ClientsPage() {
         status: 'ACTIVE',
         createdAt: new Date().toISOString()
       }]);
-      if (error) {
-        throw error;
-      }
+
+      if (error) throw error;
+
+      toast.success("Customer saved successfully!", { id: toastId });
+      
       setIsOpen(false);
       setNic(''); setFirstName(''); setLastName(''); setPhone('');
-      loadClients();
-    } catch(err) {
+      await loadClients();
+    } catch(err: any) {
       console.error(err);
+      toast.error("Error saving customer", {
+        description: err.message || "Please check your network connection.",
+        id: toastId
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -80,7 +97,7 @@ export default function ClientsPage() {
 
       {/* New Customer Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[450px] glass border-white/40 p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[450px] glass border-white/40 p-0 overflow-hidden rounded-[2rem]">
           <div className="h-2 bg-primary" />
           <div className="p-8 space-y-6">
             <DialogHeader>
@@ -94,26 +111,33 @@ export default function ClientsPage() {
             <div className="grid gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="nic" className="font-black text-[10px] uppercase tracking-widest text-slate-400">NIC Number</Label>
-                <Input value={nic} onChange={e=>setNic(e.target.value)} id="nic" placeholder="e.g. 941234567V" className="h-12 bg-white/50" />
+                <Input value={nic} onChange={e=>setNic(e.target.value)} id="nic" placeholder="e.g. 941234567V" className="h-12 bg-white/50 rounded-xl" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="firstName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">First Name</Label>
-                  <Input value={firstName} onChange={e=>setFirstName(e.target.value)} id="firstName" placeholder="Saman" className="h-12 bg-white/50" />
+                  <Input value={firstName} onChange={e=>setFirstName(e.target.value)} id="firstName" placeholder="Saman" className="h-12 bg-white/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="lastName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Last Name</Label>
-                  <Input value={lastName} onChange={e=>setLastName(e.target.value)} id="lastName" placeholder="Kumara" className="h-12 bg-white/50" />
+                  <Input value={lastName} onChange={e=>setLastName(e.target.value)} id="lastName" placeholder="Kumara" className="h-12 bg-white/50 rounded-xl" />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Phone Number</Label>
-                <Input value={phone} onChange={e=>setPhone(e.target.value)} id="phone" placeholder="077 123 4567" className="h-12 bg-white/50" />
+                <Input value={phone} onChange={e=>setPhone(e.target.value)} id="phone" placeholder="077 123 4567" className="h-12 bg-white/50 rounded-xl" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <Button variant="ghost" className="font-bold text-slate-500" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-white font-black px-6 shadow-lg shadow-primary/20">Save Customer</Button>
+              <Button variant="ghost" className="font-bold text-slate-500 h-12 rounded-xl" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button 
+                disabled={isSaving}
+                onClick={handleSave} 
+                className="bg-primary hover:bg-primary/90 text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-primary/20 gap-2"
+              >
+                {isSaving ? <RefreshCcw className="w-4 h-4 animate-spin" /> : null}
+                {isSaving ? "Saving..." : "Save Customer"}
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -123,14 +147,15 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search customers by Name or NIC..." className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50" />
+          <Input placeholder="Search customers by Name or NIC..." className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50 rounded-2xl" />
         </div>
-        <Button variant="outline" className="h-14 px-6 border-white/40 glass font-black text-[10px] uppercase tracking-widest text-slate-500 gap-2">
+        <Button variant="outline" className="h-14 px-6 border-white/40 glass font-black text-[10px] uppercase tracking-widest text-slate-500 gap-2 rounded-2xl">
            <Filter className="w-4 h-4" /> Filter
         </Button>
       </div>
 
-      <div className="glass border-white/40 rounded-3xl shadow-2xl overflow-hidden min-h-[500px] flex flex-col bg-white/40">
+      {/* Table Section */}
+      <div className="glass border-white/40 rounded-[2.5rem] shadow-2xl overflow-hidden min-h-[500px] flex flex-col bg-white/40">
         <Table>
           <TableHeader className="bg-slate-50/50 border-b border-slate-100">
             <TableRow>
@@ -148,7 +173,7 @@ export default function ClientsPage() {
                <TableRow>
                  <TableCell colSpan={5} className="h-64 text-center">
                     <p className="text-slate-400 font-bold mb-4">No customer fingerprints detected.</p>
-                    <Button variant="outline" onClick={() => setIsOpen(true)} className="border-primary/20 text-primary font-black text-[10px] uppercase tracking-widest">Generate First Entry</Button>
+                    <Button variant="outline" onClick={() => setIsOpen(true)} className="border-primary/20 text-primary font-black text-[10px] uppercase tracking-widest h-12 rounded-xl hover:bg-primary hover:text-white transition-all px-8">Generate First Entry</Button>
                  </TableCell>
                </TableRow>
             ) : (
@@ -166,9 +191,11 @@ export default function ClientsPage() {
                       {client.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-8 py-6 text-slate-500 font-bold text-xs uppercase tracking-widest">{new Date(client.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                  <TableCell className="px-8 py-6 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                    {client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                  </TableCell>
                   <TableCell className="px-8 py-6 text-right">
-                    <Button variant="ghost" size="icon" className="text-slate-300 group-hover:text-slate-600 transition-colors">
+                    <Button variant="ghost" size="icon" className="text-slate-300 group-hover:text-slate-600 transition-colors h-10 w-10 rounded-xl">
                        <MoreVertical className="w-4 h-4" />
                     </Button>
                   </TableCell>

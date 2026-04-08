@@ -199,7 +199,7 @@ export default function ExecutiveDashboard() {
             <div className="text-3xl font-black text-emerald-700 tracking-tighter leading-none">
               Rs. {totalVault.toLocaleString()}
             </div>
-            <p className="text-[10px) font-black text-slate-400 mt-3 tracking-widest uppercase">Global Cash-on-hand</p>
+            <p className="text-[10px] font-black text-slate-400 mt-3 tracking-widest uppercase">Global Cash-on-hand</p>
           </CardContent>
         </Card>
 
