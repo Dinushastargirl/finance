@@ -9,7 +9,11 @@ import {
   CreditCard,
   Activity,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  Layers,
+  Zap,
+  LineChart as LineChartIcon,
+  ShieldCheck,
 } from "lucide-react";
 import {
   AreaChart,
@@ -22,7 +26,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
@@ -30,10 +33,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const statsTemplate = [
-  { label: "Total Balance", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
-  { label: "Active Loans", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
-  { label: "Total Clients", value: "0", change: "+0.0%", trend: "up", icon: Users, color: "primary" },
-  { label: "Pending Issues", value: "0", change: "-0.0%", trend: "down", icon: Activity, color: "rose" },
+  { label: "Total Liquidity", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
+  { label: "Active Mandates", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
+  { label: "Entity Reach", value: "0", change: "+0.0%", trend: "up", icon: Users, color: "primary" },
+  { label: "Operational Risk", value: "Low", change: "Secure", trend: "up", icon: ShieldCheck, color: "indigo" },
 ];
 
 const revenueData = [
@@ -46,10 +49,10 @@ const revenueData = [
 ];
 
 const loanDistribution = [
-  { name: "Personal Loans", value: 35, color: "var(--color-primary)" },
-  { name: "Business Loans", value: 28, color: "#10b981" },
+  { name: "Personal", value: 35, color: "var(--color-primary)" },
+  { name: "Business", value: 28, color: "#10b981" },
   { name: "Mortgage", value: 22, color: "#7c3aed" },
-  { name: "Auto Loans", value: 15, color: "#f59e0b" },
+  { name: "Bridge", value: 15, color: "#f59e0b" },
 ];
 
 export default function Home() {
@@ -63,14 +66,14 @@ export default function Home() {
   const loadDashboardData = async () => {
     try {
       const { data: clients } = await supabase.from('client').select('id');
-      const { data: txs } = await supabase.from('transaction').select('*').order('timestamp', { ascending: false }).limit(5);
+      const { data: txs } = await supabase.from('transaction').select('*').order('timestamp', { ascending: false }).limit(6);
 
       if (clients && txs) {
         setStats([
-          { label: "Total Asset Balance", value: "Rs. 2,456,890", change: "+12.5%", trend: "up", icon: DollarSign, color: "emerald" },
-          { label: "Active Pawn Loans", value: "1,234", change: "+8.2%", trend: "up", icon: CreditCard, color: "blue" },
-          { label: "Total Active Clients", value: clients.length.toString(), change: "+15.3%", trend: "up", icon: Users, color: "primary" },
-          { label: "Pending Logistics", value: "267", change: "-4.1%", trend: "down", icon: Activity, color: "rose" },
+          { label: "Total Liquidity", value: "Rs. 4.2M", change: "+12.5%", trend: "up", icon: DollarSign, color: "emerald" },
+          { label: "Active Mandates", value: "1,234", change: "+8.2%", trend: "up", icon: CreditCard, color: "blue" },
+          { label: "Entity Reach", value: clients.length.toString(), change: "+15.3%", trend: "up", icon: Users, color: "primary" },
+          { label: "System Health", value: "99.9%", change: "Stable", trend: "up", icon: Zap, color: "indigo" },
         ]);
         setRecentTransactions(txs);
       }
@@ -80,197 +83,227 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      {/* Dynamic Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors font-black uppercase tracking-widest text-[10px] px-3">
-              <Sparkles className="w-3 h-3 mr-1" /> Branch Intelligence Active
+    <div className="space-y-12 animate-in fade-in slide-in-from-top-4 duration-1000">
+      {/* Dynamic Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-4 border-b border-slate-100">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Zap className="w-4 h-4 text-primary animate-pulse" />
+            </div>
+            <Badge variant="outline" className="text-primary border-primary/20 font-black uppercase tracking-widest text-[10px] py-1 px-4 rounded-full bg-primary/5">
+              Protocol: Active Intelligence
             </Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none mb-2">
-             Operations <span className="text-gradient">Hub</span>
+          <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+            Intelligence <span className="text-linear-to-r from-primary to-indigo-400 bg-clip-text text-transparent italic">Hub</span>
           </h1>
-          <p className="text-slate-500 font-medium max-w-xl">
-            Real-time liquidity monitoring, client origination tracking, and portfolio risk management for your branch.
+          <p className="text-slate-500 font-bold text-lg max-w-2xl leading-relaxed">
+            Proprietary liquidity matrix and portfolio risk engine. Monitor branch origination and capital flow in high-fidelity.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-6 shadow-xl shadow-primary/20 card-hover">
-            Record Transaction <ArrowUpRight className="ml-2 w-4 h-4" />
+        <div className="flex gap-4 shrink-0">
+          <Button variant="outline" className="h-14 font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl border-slate-200 glass hover:bg-white shadow-xl">
+            Audit Logs
+          </Button>
+          <Button className="h-14 bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl shadow-2xl shadow-primary/30 card-hover">
+            New Mandate <ArrowUpRight className="ml-2 w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Modern Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => {
+      {/* Bento Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="glass card-hover border-white/40 overflow-hidden relative">
-              <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-500/5 blur-3xl`} />
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner",
-                    stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                    stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                    stat.color === 'rose' ? "bg-rose-500/10 text-rose-600" :
-                    "bg-primary/10 text-primary"
-                  )}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <Badge className={cn(
-                    "font-black text-[10px] uppercase tracking-widest border-none px-2",
-                    stat.trend === "up" ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"
-                  )}>
-                    {stat.change}
-                  </Badge>
+            <Card key={stat.label} className="glass group overflow-hidden border-white/50 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] hover:shadow-[0_32px_64px_-16px_rgba(76,29,149,0.15)] transition-all duration-500 rounded-[2.5rem] relative">
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+              <CardContent className="p-10 relative z-10">
+                <div className="flex items-start justify-between mb-8">
+                   <div className={cn(
+                        "w-16 h-16 rounded-3xl flex items-center justify-center shadow-inner transition-transform duration-500 group-hover:rotate-6",
+                        stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                        stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                        stat.color === 'indigo' ? "bg-indigo-500/10 text-indigo-600" :
+                        "bg-primary/10 text-primary"
+                    )}>
+                        <Icon className="w-8 h-8" />
+                   </div>
+                   <div className={cn(
+                       "flex items-center gap-1.5 py-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-widest",
+                       stat.trend === "up" ? "bg-emerald-100/50 text-emerald-700" : "bg-rose-100/50 text-rose-700"
+                   )}>
+                       {stat.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                       {stat.change}
+                   </div>
                 </div>
-                <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-                <p className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+                <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.25em] mb-3">{stat.label}</p>
+                <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{stat.value}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Main Analysis Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 glass border-white/40 overflow-hidden shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-            <CardTitle className="text-xl font-black tracking-tighter">Growth Trajectory</CardTitle>
-            <div className="flex items-center gap-4">
-               <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Revenue</span>
-               </div>
-               <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Claims</span>
-               </div>
-            </div>
+      {/* Primary Analytics Bento Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Main Chart Card */}
+        <Card className="lg:col-span-8 glass border-white/50 shadow-2xl rounded-[3rem] overflow-hidden p-10 flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-12 p-0">
+             <div>
+                <CardTitle className="text-3xl font-black tracking-tighter">Yield Trajectory</CardTitle>
+                <p className="text-slate-500 font-bold text-sm mt-2 flex items-center gap-2">
+                   <LineChartIcon className="w-4 h-4" /> Market flow analysis for Q2
+                </p>
+             </div>
+             <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                   <div className="w-4 h-4 rounded-lg bg-primary shadow-lg shadow-primary/20" />
+                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Gross Intake</span>
+                </div>
+                <div className="flex items-center gap-3">
+                   <div className="w-4 h-4 rounded-lg bg-indigo-200" />
+                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Fixed Cost</span>
+                </div>
+             </div>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
+          <CardContent className="p-0 flex-1">
+            <ResponsiveContainer width="100%" height={400}>
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.2} />
+                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.05} />
                 <XAxis 
                   dataKey="month" 
                   stroke="#94a3b8" 
-                  tick={{fontSize: 10, fontWeight: 800}} 
+                  tick={{fontSize: 10, fontWeight: 900}} 
                   axisLine={false} 
                   tickLine={false}
-                  dy={10}
+                  dy={20}
                 />
                 <YAxis 
                   stroke="#94a3b8" 
-                  tick={{fontSize: 10, fontWeight: 800}} 
+                  tick={{fontSize: 10, fontWeight: 900}} 
                   axisLine={false} 
                   tickLine={false}
                   tickFormatter={(v) => `Rs.${v/1000}k`}
                 />
                 <Tooltip 
+                  cursor={{ stroke: 'var(--color-primary)', strokeWidth: 2, strokeDasharray: '5 5' }}
                   contentStyle={{ 
-                    backgroundColor: 'white', 
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
-                    fontWeight: 800,
-                    fontSize: '12px'
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    borderRadius: '24px', 
+                    border: '1px solid rgba(0,0,0,0.05)', 
+                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)',
+                    backdropFilter: 'blur(10px)',
+                    fontWeight: 900,
+                    fontSize: '14px',
+                    padding: '16px'
                   }} 
                 />
-                <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
-                <Area type="monotone" dataKey="expenses" stroke="#f43f5e" strokeWidth={4} fillOpacity={1} fill="url(#colorExpenses)" />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="var(--color-primary)" 
+                  strokeWidth={6} 
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                  animationDuration={2000}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="glass border-white/40 shadow-2xl flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-xl font-black tracking-tighter">Net Exposure</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-between">
-            <div className="relative h-[250px]">
-               <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={loanDistribution} cx="50%" cy="50%" innerRadius={75} outerRadius={100} paddingAngle={4} dataKey="value">
-                      {loanDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-               </ResponsiveContainer>
-               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Risk Weighted</span>
-                  <span className="text-3xl font-black text-slate-900">76.2%</span>
-               </div>
-            </div>
-            <div className="space-y-4 mt-8">
-              {loanDistribution.map((item) => (
-                <div key={item.name} className="flex items-center justify-between group cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full shadow-lg" style={{ backgroundColor: item.color }} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 group-hover:text-slate-900 transition-colors">{item.name}</span>
-                  </div>
-                  <span className="text-sm font-black text-slate-900">{item.value}%</span>
+        {/* Portfolio Distribution Bento */}
+        <div className="lg:col-span-4 space-y-10">
+          <Card className="glass border-white/50 shadow-2xl rounded-[3rem] p-10 h-full flex flex-col items-center justify-center relative overflow-hidden group">
+             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+             <div className="relative z-10 w-full">
+                <CardHeader className="p-0 mb-8">
+                   <CardTitle className="text-2xl font-black tracking-tighter text-center italic">Portfolio Reach</CardTitle>
+                </CardHeader>
+                <div className="relative h-[280px]">
+                   <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={loanDistribution} cx="50%" cy="50%" innerRadius={85} outerRadius={115} paddingAngle={6} dataKey="value" stroke="none">
+                          {loanDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} className="card-hover drop-shadow-xl" />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                   </ResponsiveContainer>
+                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <Layers className="w-8 h-8 text-primary/30 mb-2" />
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Spread</span>
+                      <span className="text-4xl font-black text-slate-900 tracking-tighter italic">92%</span>
+                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="mt-10 grid grid-cols-2 gap-4">
+                  {loanDistribution.map((item) => (
+                    <div key={item.name} className="flex flex-col items-center p-4 rounded-3xl bg-white/40 border border-white transition-all hover:bg-white hover:shadow-lg">
+                      <div className="w-2 h-2 rounded-full mb-3" style={{ backgroundColor: item.color }} />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-1">{item.name}</span>
+                      <span className="text-lg font-black text-slate-900 tracking-tighter">{item.value}%</span>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </Card>
+        </div>
       </div>
 
-      {/* Modern Records Table */}
-      <Card className="glass border-white/40 shadow-2xl overflow-hidden mb-12">
-        <CardHeader className="bg-white/30 border-b border-white/20 px-8 py-6">
-           <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-black tracking-tighter uppercase">Recent Ledger Activity</CardTitle>
-              <Button variant="outline" className="border-primary/20 text-primary font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white h-9 px-4">View Full History</Button>
+      {/* Ledger Records - Large Bento Card */}
+      <Card className="glass border-white/50 shadow-[0_48px_100px_-20px_rgba(0,0,0,0.1)] rounded-[3.5rem] overflow-hidden mb-16">
+        <CardHeader className="bg-white/40 border-b border-slate-100 p-12">
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <CardTitle className="text-3xl font-black tracking-tighter uppercase italic">Ledger Manifest</CardTitle>
+                <p className="text-slate-500 font-bold flex items-center gap-2">
+                   <Activity className="w-4 h-4 text-emerald-500" /> Atomic transaction history for this session
+                </p>
+              </div>
+              <Button variant="outline" className="h-12 border-slate-200 glass font-black text-[11px] uppercase tracking-[0.25em] px-8 rounded-2xl hover:bg-primary hover:text-white transition-all shadow-xl">Full Audit Profile</Button>
            </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Mandate Identifier</th>
-                  <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">TX Manifest</th>
-                  <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Capital Inflow</th>
-                  <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Execution Date</th>
+                <tr className="bg-slate-50/30">
+                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity Signature</th>
+                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Protocol Type</th>
+                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Asset Value</th>
+                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {recentTransactions.length === 0 ? (
-                    <tr><td colSpan={4} className="px-8 py-10 text-center font-bold text-slate-300">Awaiting fresh ledger protocols...</td></tr>
+                    <tr><td colSpan={4} className="px-12 py-20 text-center font-black text-slate-300 italic animate-pulse">Synchronizing with central vault...</td></tr>
                 ) : recentTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-primary/5 transition-all duration-300 group">
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <div className="text-sm font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/20 underline-offset-4">{tx.clientId}</div>
+                  <tr key={tx.id} className="hover:bg-primary/3 transition-all duration-500 group cursor-default">
+                    <td className="px-12 py-8 whitespace-nowrap">
+                      <div className="text-base font-black text-slate-900 group-hover:text-primary transition-colors flex items-center gap-3">
+                         <div className="w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" />
+                         {tx.clientId}
+                      </div>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <Badge className="bg-white text-slate-600 border border-slate-200 font-black text-[9px] uppercase tracking-[0.2em] shadow-sm">
+                    <td className="px-12 py-8 whitespace-nowrap">
+                      <Badge className="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest shadow-xs px-4 py-1.5 rounded-xl">
                         {tx.type}
                       </Badge>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-right">
-                      <div className="text-sm font-black text-emerald-600">Rs. {tx.amount?.toLocaleString()}</div>
+                    <td className="px-12 py-8 whitespace-nowrap text-right">
+                      <div className="text-lg font-black text-emerald-600 tracking-tighter italic">Rs. {tx.amount?.toLocaleString()}</div>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-right">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(tx.timestamp).toLocaleDateString()}</span>
+                    <td className="px-12 py-8 whitespace-nowrap text-right">
+                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">{new Date(tx.timestamp).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}</span>
                     </td>
                   </tr>
                 ))}

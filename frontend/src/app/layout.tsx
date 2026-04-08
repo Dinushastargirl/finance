@@ -17,12 +17,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{ fontFamily: interFont }} className="bg-background text-foreground dashboard-shell" suppressHydrationWarning>
+      <body style={{ fontFamily: interFont }} className="bg-background text-foreground dashboard-shell antialiased" suppressHydrationWarning>
         <AuthGuard>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen relative w-full overflow-x-hidden">
             <DashboardSidebar />
-            <main className="flex-1 ml-20 lg:ml-64 transition-all duration-500 p-6 md:p-8">
-              {children}
+            <main className="flex-1 transition-all duration-500 ml-24 lg:ml-72 min-h-screen flex flex-col">
+              <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto w-full">
+                {children}
+              </div>
             </main>
           </div>
         </AuthGuard>
