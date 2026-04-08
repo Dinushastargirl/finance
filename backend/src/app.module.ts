@@ -11,10 +11,17 @@ import { TransactionsModule } from './transactions/transactions.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'mifos_dev.sqlite',
+      type: 'postgres',
+      host: 'aws-1-ap-southeast-1.pooler.supabase.com',
+      port: 6543,
+      username: 'postgres.cbllrkbndxasmeicpewr',
+      password: 'jDQxjdnvApCABkcR',
+      database: 'postgres',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     UsersModule,
     ClientsModule,

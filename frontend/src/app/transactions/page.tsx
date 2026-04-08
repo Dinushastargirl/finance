@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Send, FileText, ArrowRightLeft } from "lucide-react"
-import { API_BASE_URL } from "@/lib/api-config"
+import { supabase } from "@/lib/supabase"
 
 export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +22,10 @@ export default function TransactionsPage() {
 
   const loadTransactions = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_BASE_URL}/transactions`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        setTransactions(await res.json());
+      const { data, error } = await supabase.from('transaction').select('*').order('timestamp', { ascending: false });
+      if (error) throw error;
+      if (data) {
+        setTransactions(data);
       }
     } catch(err) {
       console.error(err);
@@ -42,30 +40,22 @@ export default function TransactionsPage() {
 
   const handleTransfer = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      // CreateTransactionDto takes: clientId, type, amount, description, targetBranchId
-      const res = await fetch(`${API_BASE_URL}/transactions`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          clientId: 'INTERNAL_TRANSFER',
-          type: 'TRANSFER',
-          targetBranchId: targetBranchId || 'UNKNOWN',
-          amount: parseFloat(amount) || 0,
-          description: description || 'Routine Branch Balancing'
-        })
-      });
+      const { error } = await supabase.from('transaction').insert([{
+        clientId: 'INTERNAL_TRANSFER',
+        type: 'TRANSFER',
+        targetBranchId: targetBranchId || 'UNKNOWN',
+        amount: parseFloat(amount) || 0,
+        description: description || 'Routine Branch Balancing',
+        timestamp: new Date().toISOString()
+      }]);
 
-      if (res.ok) {
-        setIsOpen(false);
-        setTargetBranchId('');
-        setAmount('');
-        setDescription('');
-        loadTransactions();
-      }
+      if (error) throw error;
+
+      setIsOpen(false);
+      setTargetBranchId('');
+      setAmount('');
+      setDescription('');
+      loadTransactions();
     } catch(err) {
       console.error(err);
     }
