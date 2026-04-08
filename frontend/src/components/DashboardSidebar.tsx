@@ -24,34 +24,34 @@ import { cn } from '@/lib/utils';
 
 const navGroups = [
   {
-    label: "Intelligence Hub",
+    label: "Overview",
     items: [
       { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-      { name: 'Portfolio Growth', href: '/dashboard/executive', icon: TrendingUp },
+      { name: 'Growth', href: '/dashboard/executive', icon: TrendingUp },
     ]
   },
   {
-    label: "Core Finance",
+    label: "Finance",
     items: [
       { name: 'Customers', href: '/clients', icon: Users },
-      { name: 'Pawn Loans', href: '/loans', icon: Wallet },
-      { name: 'Client Accounts', href: '/savings', icon: PiggyBank },
-      { name: 'Ledger Records', href: '/accounting/ledger', icon: FileText },
+      { name: 'Loans', href: '/loans', icon: Wallet },
+      { name: 'Accounts', href: '/savings', icon: PiggyBank },
+      { name: 'Records', href: '/accounting/ledger', icon: FileText },
     ]
   },
   {
     label: "Transactions",
     items: [
-      { name: 'All Transactions', href: '/transactions', icon: ArrowRightLeft },
-      { name: 'Vault Transfers', href: '/transactions/transfers', icon: History },
+      { name: 'Transaction History', href: '/transactions', icon: ArrowRightLeft },
+      { name: 'Money Transfers', href: '/transactions/transfers', icon: History },
     ]
   },
   {
-    label: "Operational Ops",
+    label: "Operations",
     items: [
       { name: 'End-of-Day', href: '/operations/eod', icon: ShieldCheck },
-      { name: 'Analytics Reports', href: '/reports', icon: BarChart3 },
-      { name: 'Manage Staff', href: '/employees', icon: Users, adminOnly: true },
+      { name: 'Reports', href: '/reports', icon: BarChart3 },
+      { name: 'Staff', href: '/employees', icon: Users, adminOnly: true },
     ]
   }
 ];
@@ -92,7 +92,7 @@ export default function DashboardSidebar() {
           {!isCollapsed && (
             <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500">
               <span className="text-white font-black tracking-tighter text-2xl leading-none">RUPASINGHE</span>
-              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] mt-2 opacity-90">Finance Intel Hub</span>
+              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] mt-2 opacity-90">Management Hub</span>
             </div>
           )}
         </div>
@@ -166,7 +166,7 @@ export default function DashboardSidebar() {
             {isCollapsed ? <ChevronRight className="w-5 h-5 mx-auto" /> : (
               <>
                 <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                <span className="ml-5 font-bold text-[13px]">Minimize Hub</span>
+                <span className="ml-5 font-bold text-[13px]">Close Sidebar</span>
               </>
             )}
           </button>
@@ -176,7 +176,7 @@ export default function DashboardSidebar() {
             className="flex items-center w-full h-11 px-5 rounded-2xl hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-all group"
           >
             <LogOut className="w-5 h-5 shrink-0 group-hover:rotate-12 transition-transform" />
-            {!isCollapsed && <span className="ml-5 font-bold text-[13px]">Vault Seal Exit</span>}
+            {!isCollapsed && <span className="ml-5 font-bold text-[13px]">Logout</span>}
           </button>
         </div>
       </div>

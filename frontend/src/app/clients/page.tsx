@@ -68,13 +68,13 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass p-8 rounded-2xl border-white/40 shadow-2xl gap-6">
         <div>
           <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 mb-3 px-3 py-0.5 font-black uppercase tracking-widest text-[10px]">
-            <Sparkles className="w-3 h-3 mr-1" /> CRM Directory
+            <Sparkles className="w-3 h-3 mr-1" /> Customer List
           </Badge>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-2">Clients <span className="text-gradient">Portfolio</span></h1>
-          <p className="text-slate-500 font-medium tracking-tight">Enterprise-grade record keeping for all branch customer interactions.</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-2">Our <span className="text-gradient">Customers</span></h1>
+          <p className="text-slate-500 font-medium tracking-tight">Manage all customer information for this branch.</p>
         </div>
         <Button onClick={() => setIsOpen(true)} className="gap-2 bg-primary hover:bg-primary/90 h-14 px-8 text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 card-hover w-full md:w-auto shrink-0 transition-all">
-          <UserPlus className="h-4 w-4" /> Onboard New Customer
+          <UserPlus className="h-4 w-4" /> Add New Customer
         </Button>
       </div>
 
@@ -85,35 +85,35 @@ export default function ClientsPage() {
           <div className="p-8 space-y-6">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-3">
-                 Register Entity
+                 Add Customer
               </DialogTitle>
               <DialogDescription className="font-medium text-slate-500">
-                Generate a fresh customer profile protocol. All fields required for KYC.
+                Enter name and details to create a new customer profile.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="nic" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Identity Manifest (NIC)</Label>
+                <Label htmlFor="nic" className="font-black text-[10px] uppercase tracking-widest text-slate-400">NIC Number</Label>
                 <Input value={nic} onChange={e=>setNic(e.target.value)} id="nic" placeholder="e.g. 941234567V" className="h-12 bg-white/50" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="firstName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Legal First Name</Label>
+                  <Label htmlFor="firstName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">First Name</Label>
                   <Input value={firstName} onChange={e=>setFirstName(e.target.value)} id="firstName" placeholder="Saman" className="h-12 bg-white/50" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="lastName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Legal Last Name</Label>
+                  <Label htmlFor="lastName" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Last Name</Label>
                   <Input value={lastName} onChange={e=>setLastName(e.target.value)} id="lastName" placeholder="Kumara" className="h-12 bg-white/50" />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phone" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Communication Node</Label>
+                <Label htmlFor="phone" className="font-black text-[10px] uppercase tracking-widest text-slate-400">Phone Number</Label>
                 <Input value={phone} onChange={e=>setPhone(e.target.value)} id="phone" placeholder="077 123 4567" className="h-12 bg-white/50" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <Button variant="ghost" className="font-bold text-slate-500" onClick={() => setIsOpen(false)}>Abort</Button>
-              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-white font-black px-6 shadow-lg shadow-primary/20">Authorize & Save</Button>
+              <Button variant="ghost" className="font-bold text-slate-500" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-white font-black px-6 shadow-lg shadow-primary/20">Save Customer</Button>
             </div>
           </div>
         </DialogContent>
@@ -123,10 +123,10 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search records by Name or NIC..." className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50" />
+          <Input placeholder="Search customers by Name or NIC..." className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50" />
         </div>
         <Button variant="outline" className="h-14 px-6 border-white/40 glass font-black text-[10px] uppercase tracking-widest text-slate-500 gap-2">
-           <Filter className="w-4 h-4" /> Filter Protocols
+           <Filter className="w-4 h-4" /> Filter
         </Button>
       </div>
 
@@ -134,10 +134,10 @@ export default function ClientsPage() {
         <Table>
           <TableHeader className="bg-slate-50/50 border-b border-slate-100">
             <TableRow>
-              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Unique Identity</TableHead>
-              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Entity Representation</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">NIC Number</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Customer Name</TableHead>
               <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Status</TableHead>
-              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Creation Date</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Joined Date</TableHead>
               <TableHead className="px-8 py-5"></TableHead>
             </TableRow>
           </TableHeader>

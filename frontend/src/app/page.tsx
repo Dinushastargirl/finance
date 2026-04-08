@@ -33,10 +33,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const statsTemplate = [
-  { label: "Total Liquidity", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
-  { label: "Active Mandates", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
-  { label: "Entity Reach", value: "0", change: "+0.0%", trend: "up", icon: Users, color: "primary" },
-  { label: "Operational Risk", value: "Low", change: "Secure", trend: "up", icon: ShieldCheck, color: "indigo" },
+  { label: "Total Cash", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
+  { label: "Active Loans", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
+  { label: "Total Customers", value: "0", change: "+0.0%", trend: "up", icon: Users, color: "primary" },
+  { label: "System Health", value: "Good", change: "Online", trend: "up", icon: Zap, color: "indigo" },
 ];
 
 const revenueData = [
@@ -70,10 +70,10 @@ export default function Home() {
 
       if (clients && txs) {
         setStats([
-          { label: "Total Liquidity", value: "Rs. 4.2M", change: "+12.5%", trend: "up", icon: DollarSign, color: "emerald" },
-          { label: "Active Mandates", value: "1,234", change: "+8.2%", trend: "up", icon: CreditCard, color: "blue" },
-          { label: "Entity Reach", value: clients.length.toString(), change: "+15.3%", trend: "up", icon: Users, color: "primary" },
-          { label: "System Health", value: "99.9%", change: "Stable", trend: "up", icon: Zap, color: "indigo" },
+          { label: "Total Cash", value: "Rs. 4.2M", change: "+12.5%", trend: "up", icon: DollarSign, color: "emerald" },
+          { label: "Active Loans", value: "1,234", change: "+8.2%", trend: "up", icon: CreditCard, color: "blue" },
+          { label: "Total Customers", value: clients.length.toString(), change: "+15.3%", trend: "up", icon: Users, color: "primary" },
+          { label: "System Health", value: "99.9%", change: "Online", trend: "up", icon: Zap, color: "indigo" },
         ]);
         setRecentTransactions(txs);
       }
@@ -92,22 +92,22 @@ export default function Home() {
               <Zap className="w-4 h-4 text-primary animate-pulse" />
             </div>
             <Badge variant="outline" className="text-primary border-primary/20 font-black uppercase tracking-widest text-[10px] py-1 px-4 rounded-full bg-primary/5">
-              Protocol: Active Intelligence
+              System: Online
             </Badge>
           </div>
           <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
-            Intelligence <span className="text-linear-to-r from-primary to-indigo-400 bg-clip-text text-transparent italic">Hub</span>
+            Branch <span className="text-linear-to-r from-primary to-indigo-400 bg-clip-text text-transparent italic">Overview</span>
           </h1>
           <p className="text-slate-500 font-bold text-lg max-w-2xl leading-relaxed">
-            Proprietary liquidity matrix and portfolio risk engine. Monitor branch origination and capital flow in high-fidelity.
+            Track your branch money, loans, and customers in real-time.
           </p>
         </div>
         <div className="flex gap-4 shrink-0">
           <Button variant="outline" className="h-14 font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl border-slate-200 glass hover:bg-white shadow-xl">
-            Audit Logs
+            History
           </Button>
           <Button className="h-14 bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl shadow-2xl shadow-primary/30 card-hover">
-            New Mandate <ArrowUpRight className="ml-2 w-4 h-4" />
+            New Loan <ArrowUpRight className="ml-2 w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -152,19 +152,19 @@ export default function Home() {
         <Card className="lg:col-span-8 glass border-white/50 shadow-2xl rounded-[3rem] overflow-hidden p-10 flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-12 p-0">
              <div>
-                <CardTitle className="text-3xl font-black tracking-tighter">Yield Trajectory</CardTitle>
+                <CardTitle className="text-3xl font-black tracking-tighter">Money Growth</CardTitle>
                 <p className="text-slate-500 font-bold text-sm mt-2 flex items-center gap-2">
-                   <LineChartIcon className="w-4 h-4" /> Market flow analysis for Q2
+                   <LineChartIcon className="w-4 h-4" /> Sales and Expenses chart
                 </p>
              </div>
              <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
                    <div className="w-4 h-4 rounded-lg bg-primary shadow-lg shadow-primary/20" />
-                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Gross Intake</span>
+                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Income</span>
                 </div>
                 <div className="flex items-center gap-3">
                    <div className="w-4 h-4 rounded-lg bg-indigo-200" />
-                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Fixed Cost</span>
+                   <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Expenses</span>
                 </div>
              </div>
           </CardHeader>
@@ -226,7 +226,7 @@ export default function Home() {
              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
              <div className="relative z-10 w-full">
                 <CardHeader className="p-0 mb-8">
-                   <CardTitle className="text-2xl font-black tracking-tighter text-center italic">Portfolio Reach</CardTitle>
+                   <CardTitle className="text-2xl font-black tracking-tighter text-center italic">Loan Types</CardTitle>
                 </CardHeader>
                 <div className="relative h-[280px]">
                    <ResponsiveContainer width="100%" height="100%">
@@ -241,7 +241,7 @@ export default function Home() {
                    </ResponsiveContainer>
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <Layers className="w-8 h-8 text-primary/30 mb-2" />
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Spread</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Loans</span>
                       <span className="text-4xl font-black text-slate-900 tracking-tighter italic">92%</span>
                    </div>
                 </div>
@@ -264,12 +264,12 @@ export default function Home() {
         <CardHeader className="bg-white/40 border-b border-slate-100 p-12">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
-                <CardTitle className="text-3xl font-black tracking-tighter uppercase italic">Ledger Manifest</CardTitle>
+                <CardTitle className="text-3xl font-black tracking-tighter uppercase italic">Recent Transactions</CardTitle>
                 <p className="text-slate-500 font-bold flex items-center gap-2">
-                   <Activity className="w-4 h-4 text-emerald-500" /> Atomic transaction history for this session
+                   <Activity className="w-4 h-4 text-emerald-500" /> List of your latest activities
                 </p>
               </div>
-              <Button variant="outline" className="h-12 border-slate-200 glass font-black text-[11px] uppercase tracking-[0.25em] px-8 rounded-2xl hover:bg-primary hover:text-white transition-all shadow-xl">Full Audit Profile</Button>
+              <Button variant="outline" className="h-12 border-slate-200 glass font-black text-[11px] uppercase tracking-[0.25em] px-8 rounded-2xl hover:bg-primary hover:text-white transition-all shadow-xl">View All History</Button>
            </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -277,10 +277,10 @@ export default function Home() {
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50/30">
-                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Entity Signature</th>
-                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Protocol Type</th>
-                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Asset Value</th>
-                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
+                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Customer Name</th>
+                  <th className="px-12 py-8 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Type</th>
+                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
+                  <th className="px-12 py-8 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">Date & Time</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
