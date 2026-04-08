@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search, FileText, Package, TrendingUp, AlertTriangle } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { API_BASE_URL } from "@/lib/api-config"
+import { supabase } from "@/lib/supabase"
 
 export default function LoansPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,13 +23,10 @@ export default function LoansPage() {
 
   const loadLoans = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_BASE_URL}/transactions`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setLoans(data.filter((tx: any) => tx.type === 'PAWN'));
+      const { data, error } = await supabase.from('transaction').select('*').eq('type', 'PAWN').order('timestamp', { ascending: false });
+      if (error) throw error;
+      if (data) {
+        setLoans(data);
       }
     } catch(err) {
       console.error(err);
@@ -42,25 +39,19 @@ export default function LoansPage() {
 
   const handleDisburse = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_BASE_URL}/transactions`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          clientId: clientId || 'UNKNOWN', 
-          type: 'PAWN', 
-          amount: parseFloat(amount) || 0, 
-          description: description + ` (Appraisal: Rs. ${appraisal})` 
-        })
-      });
-      if (res.ok) {
-        setIsOpen(false);
-        setClientId(''); setDescription(''); setAppraisal(''); setAmount('');
-        loadLoans();
-      }
+      const { error } = await supabase.from('transaction').insert([{
+        clientId: clientId || 'UNKNOWN',
+        type: 'PAWN',
+        amount: parseFloat(amount) || 0,
+        description: description + ` (Appraisal: Rs. ${appraisal})`,
+        timestamp: new Date().toISOString()
+      }]);
+      
+      if (error) throw error;
+      
+      setIsOpen(false);
+      setClientId(''); setDescription(''); setAppraisal(''); setAmount('');
+      loadLoans();
     } catch(err) {
       console.error(err);
     }
