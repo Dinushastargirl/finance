@@ -1,214 +1,206 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Download, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  BookOpen, Landmark, Filter, Download, 
-  RefreshCcw, ArrowRightLeft, CreditCard, Banknote,
-  Search, ChevronLeft, ChevronRight
-} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { API_BASE_URL } from "@/lib/api-config";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function LedgerPage() {
-  const [journals, setJournals] = useState<any[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [filterDate, setFilterDate] = useState("");
 
-  useEffect(() => {
-    loadJournals();
-  }, []);
+  // Form State
+  const [newDesc, setNewDesc] = useState("");
+  const [newRef, setNewRef] = useState("");
+  const [lines, setLines] = useState([{ account: "", debit: "", credit: "" }, { account: "", debit: "", credit: "" }]);
 
-  const loadJournals = async () => {
-    setLoading(true);
+  const loadEntries = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_BASE_URL}/gl/journal`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) setJournals(await res.json());
+      const res = await fetch('/api/ledger');
+      if (res.ok) setEntries(await res.json());
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const filtered = journals.filter(j => 
-    j.type.toLowerCase().includes(filter.toLowerCase()) || 
-    j.branchId.toLowerCase().includes(filter.toLowerCase()) ||
-    j.referenceId.toLowerCase().includes(filter.toLowerCase())
-  );
+  useEffect(() => { loadEntries(); }, []);
+
+  const handleAddLine = () => setLines([...lines, { account: "", debit: "", credit: "" }]);
+  
+  const updateLine = (index: number, field: string, value: string) => {
+    const newLines = [...lines];
+    newLines[index] = { ...newLines[index], [field]: value };
+    setLines(newLines);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch('/api/ledger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          description: newDesc,
+          reference: newRef,
+          entries: lines
+        })
+      });
+      if (res.ok) {
+        setShowAddModal(false);
+        setNewDesc(""); setNewRef("");
+        setLines([{ account: "", debit: "", credit: "" }, { account: "", debit: "", credit: "" }]);
+        loadEntries();
+      } else {
+        const errorData = await res.json();
+        alert("Transaction Failed: " + errorData.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("System Error");
+    }
+  };
+
+  const filteredEntries = filterDate ? entries.filter(e => e.date === filterDate) : entries;
+  const totalDebit = filteredEntries.reduce((sum, e) => sum + parseFloat(e.total_debit), 0);
+  const totalCredit = filteredEntries.reduce((sum, e) => sum + parseFloat(e.total_credit), 0);
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Header */}
-      <div className="flex justify-between items-end bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-indigo-600 font-black tracking-widest text-xs uppercase mb-2">
-            <BookOpen className="h-4 w-4" /> Mifos X Compliance
-          </div>
-          <h1 className="text-4xl font-black text-slate-900 leading-none">General Ledger</h1>
-          <p className="text-slate-500 font-medium">Native Double-Entry Journal Audit Trail.</p>
+    <div className="space-y-6 max-w-7xl mx-auto pb-20">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">General Ledger</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Record and view strict double-entry journal logs.</p>
         </div>
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Search TX / Branch..." 
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-              className="pl-10 w-64 bg-slate-50 border-slate-200 focus:bg-white transition-all font-medium" 
-            />
-          </div>
-          <Button onClick={loadJournals} variant="outline" className="gap-2 font-bold border-slate-300">
-            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Sync Ledger
-          </Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 font-bold px-6 shadow-lg shadow-indigo-100 gap-2">
-            <Download className="h-4 w-4" /> Export GLS
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-4">
-        {/* Ledger Summary Cards */}
-        <Card className="bg-indigo-600 text-white border-none shadow-xl shadow-indigo-200">
-          <CardHeader className="pb-2">
-            <p className="text-xs font-black uppercase tracking-widest text-indigo-200">Total Pawn Receivable</p>
-            <CardTitle className="text-3xl font-black">Rs. 8,452,000</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-1 w-full bg-indigo-500 rounded-full overflow-hidden mt-4">
-              <div className="h-full bg-white w-3/4 rounded-full shadow-[0_0_8px_white]" />
-            </div>
-            <p className="text-[10px] font-bold mt-2 text-indigo-200 uppercase tracking-wide">Category: 1100 Assets</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-emerald-600 text-white border-none shadow-xl shadow-emerald-200">
-          <CardHeader className="pb-2">
-            <p className="text-xs font-black uppercase tracking-widest text-emerald-200">Interest Income (MTD)</p>
-            <CardTitle className="text-3xl font-black">Rs. 420,150</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-1 w-full bg-emerald-500 rounded-full overflow-hidden mt-4">
-              <div className="h-full bg-white w-1/2 rounded-full shadow-[0_0_8px_white]" />
-            </div>
-            <p className="text-[10px] font-bold mt-2 text-emerald-200 uppercase tracking-wide">Category: 4001 Revenue</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-900 text-white border-none shadow-xl shadow-slate-200 lg:col-span-2">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Ledger Integrity</p>
-              <CardTitle className="text-3xl font-black">100% Balanced</CardTitle>
-            </div>
-            <Landmark className="h-10 w-10 text-slate-700" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-medium text-slate-400 mt-2">
-              Sum(Debits) === Sum(Credits). All 11 branches verified and consolidated.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Ledger Table */}
-      <Card className="bg-white border-slate-200 overflow-hidden shadow-sm">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-slate-50 border-b border-slate-100">
-              <TableRow>
-                <TableHead className="w-16 font-black text-xs uppercase tracking-widest text-slate-500 pl-8">#</TableHead>
-                <TableHead className="font-black text-xs uppercase tracking-widest text-slate-500">Timestamp</TableHead>
-                <TableHead className="font-black text-xs uppercase tracking-widest text-slate-500">Branch</TableHead>
-                <TableHead className="font-black text-xs uppercase tracking-widest text-slate-500">Transaction Type</TableHead>
-                <TableHead className="font-black text-xs uppercase tracking-widest text-slate-500 w-[400px]">Double-Entry Details</TableHead>
-                <TableHead className="font-black text-xs uppercase tracking-widest text-slate-500 pr-8 text-right">Reference</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-64 h text-center py-20">
-                    <RefreshCcw className="h-10 w-10 text-indigo-600 animate-spin mx-auto mb-4 opacity-20" />
-                    <p className="font-black text-slate-300 uppercase tracking-widest text-xs">Pulling from Firestore Ledger...</p>
-                  </TableCell>
-                </TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-20 text-center">
-                    <BookOpen className="h-12 w-12 text-slate-200 mx-auto mb-4" />
-                    <p className="font-black text-slate-400 uppercase tracking-widest text-xs">No matching journal entries found.</p>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((j, idx) => (
-                  <TableRow key={idx} className="group hover:bg-slate-50/80 border-slate-50 transition-colors">
-                    <TableCell className="font-bold text-slate-400 pl-8">{idx + 1}</TableCell>
-                    <TableCell className="font-medium text-slate-600 text-xs">
-                      {j.timestamp ? new Date(j.timestamp).toLocaleString('en-GB') : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-slate-50 font-black text-xs border-slate-200">
-                        {j.branchId}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-md ${
-                          j.type === 'PAWN' ? 'bg-blue-100 text-blue-700' : 
-                          j.type === 'REPAYMENT' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {j.type === 'PAWN' ? <Banknote className="h-3 w-3" /> : <CreditCard className="h-3 w-3" />}
-                        </div>
-                        <span className="font-black text-slate-900 tracking-tight">{j.type}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="space-y-2 border-l-2 border-slate-100 pl-4">
-                        {j.entries?.map((e:any, ei:number) => (
-                          <div key={ei} className="flex items-center justify-between text-[11px] font-black uppercase tracking-tight">
-                            <span className="text-slate-500 w-48 truncate">{e.accountName} <span className="text-[9px] opacity-40 font-medium">({e.account})</span></span>
-                            <div className="flex gap-4">
-                              <span className={e.type === 'DEBIT' ? 'text-blue-600' : 'text-emerald-600'}>
-                                {e.type === 'DEBIT' ? `DR Rs. ${e.amount.toLocaleString()}` : ''}
-                              </span>
-                              <span className={e.type === 'CREDIT' ? 'text-emerald-600' : 'text-blue-600'}>
-                                {e.type === 'CREDIT' ? `CR Rs. ${e.amount.toLocaleString()}` : ''}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <p className="text-[10px] font-black text-indigo-600/60 uppercase tracking-tighter truncate max-w-[120px] ml-auto">
-                        REF:{j.referenceId}
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="icon" className="rounded-full h-8 w-8 text-slate-400 border-slate-200">
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-black text-xs text-slate-400 uppercase tracking-widest">Page 1 of 1</span>
-        <Button variant="outline" size="icon" className="rounded-full h-8 w-8 text-slate-400 border-slate-200">
-          <ChevronRight className="h-4 w-4" />
+        <Button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 px-5 gap-2 w-full md:w-auto">
+          <Plus className="w-4 h-4" /> Add Journal Entry
         </Button>
       </div>
 
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">New Journal Entry</DialogTitle>
+            <DialogDescription>Debits and Credits must balance identically to process.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label className="font-bold">Date</Label>
+                 <Input type="date" defaultValue={new Date().toISOString().split('T')[0]} readOnly className="bg-slate-50"/>
+               </div>
+               <div className="space-y-2">
+                 <Label className="font-bold">Reference Code</Label>
+                 <Input value={newRef} onChange={e => setNewRef(e.target.value)} placeholder="REF-001" />
+               </div>
+            </div>
+            <div className="space-y-2">
+               <Label className="font-bold">Description</Label>
+               <Input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Loan disbursement from vault..." />
+            </div>
+            
+            <div className="border-t border-slate-100 pt-4 mt-2">
+              <Label className="font-black text-slate-800 uppercase tracking-widest text-xs mb-4 block">Transaction Rows</Label>
+              <div className="space-y-3">
+                {lines.map((line, index) => (
+                   <div key={index} className="grid grid-cols-3 gap-3">
+                     <Input placeholder="General Account" value={line.account} onChange={e => updateLine(index, 'account', e.target.value)} />
+                     <Input placeholder="Debit (Dr)" type="number" value={line.debit} onChange={e => updateLine(index, 'debit', e.target.value)} />
+                     <Input placeholder="Credit (Cr)" type="number" value={line.credit} onChange={e => updateLine(index, 'credit', e.target.value)} />
+                   </div>
+                ))}
+              </div>
+              <Button variant="link" onClick={handleAddLine} className="px-0 mt-2 font-bold text-blue-600">+ Add line</Button>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">Lock Entry</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Entries</p>
+          <p className="text-3xl font-black text-slate-800">{filteredEntries.length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Debit (Dr)</p>
+          <p className="text-3xl font-black text-slate-800">Rs. {totalDebit.toLocaleString()}</p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Credit (Cr)</p>
+          <p className="text-3xl font-black text-slate-800">Rs. {totalCredit.toLocaleString()}</p>
+        </div>
+        <div className="bg-slate-900 rounded-xl p-5 shadow-xl shadow-slate-200/50">
+          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Trial Balance</p>
+          <p className={`text-3xl font-black ${Math.abs(totalDebit - totalCredit) < 0.1 ? 'text-white' : 'text-rose-500'}`}>
+             Rs. {Math.abs(totalDebit - totalCredit).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex gap-4">
+         <div className="flex-1">
+            <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-full md:w-64" />
+         </div>
+         {filterDate && <Button variant="outline" onClick={() => setFilterDate("")}><X className="w-4 h-4 mr-2"/> Clear Filter</Button>}
+         <Button variant="outline" className="font-bold"><Download className="w-4 h-4 mr-2"/> Export</Button>
+      </div>
+
+      <div className="space-y-6">
+        {loading ? (
+           <p className="text-center font-bold text-slate-400">Loading ledger logs...</p>
+        ) : filteredEntries.length === 0 ? (
+           <p className="text-center font-bold text-slate-400">No journal entries found.</p>
+        ) : filteredEntries.map((entry) => (
+          <div key={entry.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+               <div>
+                  <div className="flex items-center gap-3">
+                     <span className="text-xs font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded uppercase">{entry.id}</span>
+                     <span className="text-xs font-bold text-slate-500">{new Date(entry.date).toLocaleDateString()}</span>
+                     <span className="text-xs font-bold text-slate-500">Ref: {entry.reference || 'N/A'}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 mt-2">{entry.description}</p>
+               </div>
+               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                  Auth by {entry.created_by}
+               </span>
+            </div>
+            <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">Account</TableHead>
+                   <TableHead className="font-bold text-slate-700 uppercase text-[10px] tracking-wider text-right">Debit</TableHead>
+                   <TableHead className="font-bold text-slate-700 uppercase text-[10px] tracking-wider text-right">Credit</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {entry.journal_entry_line && entry.journal_entry_line.map((line: any) => (
+                    <TableRow key={line.id}>
+                       <TableCell className="font-semibold text-slate-700">{line.account_name}</TableCell>
+                       <TableCell className="text-right font-black text-slate-800">{line.debit > 0 ? `Rs. ${line.debit.toLocaleString()}` : '-'}</TableCell>
+                       <TableCell className="text-right font-black text-slate-800">{line.credit > 0 ? `Rs. ${line.credit.toLocaleString()}` : '-'}</TableCell>
+                    </TableRow>
+                 ))}
+                 <TableRow className="bg-slate-50/50">
+                    <TableCell className="font-black text-slate-900 uppercase text-[10px] tracking-widest">Total Transaction Value</TableCell>
+                    <TableCell className="text-right font-black text-slate-900 text-lg border-t-2 border-slate-300">Rs. {entry.total_debit?.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-black text-slate-900 text-lg border-t-2 border-slate-300">Rs. {entry.total_credit?.toLocaleString()}</TableCell>
+                 </TableRow>
+               </TableBody>
+            </Table>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
