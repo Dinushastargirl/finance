@@ -51,41 +51,93 @@ export default function ExecutiveDashboard() {
       if (vRes.ok) setVaults(await vRes.json());
       
       if (isRefresh) toast.success("Dashboard data synchronized successfully.");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load executive data", err);
-      toast.error("Cloud synchronization failed. Check connection.");
+      // Detailed error for the user
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          toast.error("Backend Server Unreachable", {
+            description: "Make sure your backend is running at http://localhost:8080 or the correct URL.",
+            duration: 5000
+          });
+      } else {
+          toast.error("An error occurred while loading data.");
+      }
     }
     setLoading(false);
     setRefreshing(false);
   };
 
   const handleExportPDF = async () => {
-    if (!dashboardRef.current) return;
+    if (!dashboardRef.current) {
+        toast.error("Dashboard reference not found.");
+        return;
+    }
+    
     setExporting(true);
     const toastId = toast.loading("Generating Master Report PDF...");
 
     try {
+      // Small delay to ensure any active tooltips or hover states settle
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
-        logging: false,
-        backgroundColor: "#f8fafc" // bg-slate-50
+        allowTaint: true,
+        logging: true,
+        backgroundColor: "#f8fafc",
+        windowWidth: 1400,
+        onclone: (clonedDoc) => {
+            const root = clonedDoc.documentElement;
+            // CRITICAL: html2canvas v1.4.1 crashes on oklch/lab colors used in Tailwind v4.
+            // We force standard HEX/RGB fallbacks for the capture clone.
+            root.style.setProperty('--primary', '#4c2188'); 
+            root.style.setProperty('--background', '#f8fafc');
+            root.style.setProperty('--foreground', '#1e293b');
+            root.style.setProperty('--card', 'rgba(255, 255, 255, 0.9)');
+            root.style.setProperty('--border', '#e2e8f0');
+            
+            // Fix any other elements that might use oklch explicitly
+            const elementsWithOklch = clonedDoc.querySelectorAll('*');
+            elementsWithOklch.forEach((el: any) => {
+                const style = clonedDoc.defaultView?.getComputedStyle(el);
+                if (style && (style.color?.includes('oklch') || style.backgroundColor?.includes('oklch'))) {
+                    // Force standard colors for common UI elements
+                    if (el.classList.contains('text-primary')) el.style.color = '#4c2188';
+                    if (el.classList.contains('bg-primary')) el.style.backgroundColor = '#4c2188';
+                }
+            });
+
+            // Hide the buttons in the exported version
+            const btnArea = clonedDoc.querySelector('.flex.gap-3.w-full.md\\:w-auto') as HTMLElement;
+            if (btnArea) btnArea.style.display = 'none';
+        }
       });
       
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.75);
       const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "px",
-        format: [canvas.width / 2, canvas.height / 2]
+        orientation: "p",
+        unit: "pt",
+        format: "a4"
       });
 
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      // Calculate ratio to fit A4 width
+      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+      const finalWidth = imgWidth * ratio;
+      const finalHeight = imgHeight * ratio;
+
+      pdf.addImage(imgData, "JPEG", (pageWidth - finalWidth) / 2, 0, finalWidth, finalHeight);
       pdf.save(`Executive_Master_Report_${new Date().toISOString().split('T')[0]}.pdf`);
       
       toast.success("Master Report downloaded.", { id: toastId });
-    } catch (err) {
-      console.error("PDF Export failed", err);
-      toast.error("Failed to generate PDF. Please try again.", { id: toastId });
+    } catch (err: any) {
+      console.error("PDF Export failed:", err);
+      toast.error(`Failed to generate PDF: ${err.message || 'Unknown error'}`, { id: toastId });
     } finally {
       setExporting(false);
     }
