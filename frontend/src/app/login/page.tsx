@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Shield } from "lucide-react"
-import { API_BASE_URL } from "@/lib/api-config"
+import { supabase } from "@/lib/supabase"
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,21 +17,17 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (!res.ok) {
-        throw new Error('Invalid branch credentials');
+      if (signInError || !data.user) {
+        throw new Error(signInError?.message || 'Invalid branch credentials');
       }
 
-      const data = await res.json();
-      localStorage.setItem('auth_token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('auth_token', data.session?.access_token || '');
+      localStorage.setItem('user', JSON.stringify({ email: data.user.email, id: data.user.id }));
       window.location.href = '/'; 
     } catch (err: any) {
       setError(err.message);
