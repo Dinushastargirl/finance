@@ -88,38 +88,13 @@ export default function ExecutiveDashboard() {
         backgroundColor: "#f8fafc",
         windowWidth: 1200, // Fixed width for consistent layout
         onclone: (clonedDoc) => {
-            // STEP 1: Inject a "Safe Style" block to override modern CSS that crashes the capture tool
-            const style = clonedDoc.createElement('style');
-            style.innerHTML = `
-                /* Strip problematic filters and animations */
-                * { 
-                    backdrop-filter: none !important; 
-                    -webkit-backdrop-filter: none !important;
-                    transition: none !important;
-                    animation: none !important;
-                    box-shadow: none !important;
-                    text-shadow: none !important;
-                }
-                /* Force standard colors over modern oklch/lab variables */
-                :root {
-                    --primary: #4c2188 !important;
-                    --background: #f8fafc !important;
-                    --foreground: #1e293b !important;
-                    --card: #ffffff !important;
-                    --border: #e2e8f0 !important;
-                    --emerald-600: #059669 !important;
-                    --rose-600: #e11d48 !important;
-                }
-                /* Ensure visibility */
-                .glass { background: white !important; border: 1px solid #e2e8f0 !important; }
-                .bg-primary { background-color: #4c2188 !important; }
-                .text-primary { color: #4c2188 !important; }
-            `;
-            clonedDoc.head.appendChild(style);
-
             // Hide UI controls in the export
             const controls = clonedDoc.querySelector('.flex.gap-3.w-full.md\\:w-auto') as HTMLElement;
             if (controls) controls.style.display = 'none';
+
+            // Ensure background is solid for the capture
+            const body = clonedDoc.body;
+            body.style.backgroundColor = "#f8fafc";
         }
       });
       
