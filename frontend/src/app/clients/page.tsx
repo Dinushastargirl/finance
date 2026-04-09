@@ -26,9 +26,13 @@ export default function ClientsPage() {
 
   const loadClients = async () => {
     try {
-      const { data, error } = await supabase.from('client').select('*').order('createdAt', { ascending: false });
-      if (error) throw error;
-      if (data) setClients(data);
+      const res = await fetch('/api/clients');
+      if (res.ok) {
+        const data = await res.json();
+        setClients(data);
+      } else {
+        throw new Error("Failed to fetch");
+      }
     } catch(err) {
       console.error(err);
       toast.error("Failed to load customer directory.");
@@ -51,20 +55,18 @@ export default function ClientsPage() {
 
     setIsSaving(true);
     const toastId = toast.loading("Saving customer profile...");
-    const clientId = `CLI-${Date.now().toString().slice(-6)}`;
 
     try {
-      const { error } = await supabase.from('client').insert([{
-        id: clientId,
-        nationalId: nic,
-        firstName,
-        lastName,
-        phone,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString()
-      }]);
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nic, firstName, lastName, phone })
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save");
+      }
 
       toast.success("Customer saved successfully!", { id: toastId });
       
@@ -83,15 +85,14 @@ export default function ClientsPage() {
   };
 
   const filteredClients = clients.filter(client => 
-    client.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.nationalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.national_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.phone?.includes(searchQuery)
   );
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
-      {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass p-8 rounded-2xl border-white/40 shadow-2xl gap-6">
         <div>
           <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 mb-3 px-3 py-0.5 font-black uppercase tracking-widest text-[10px]">
@@ -194,10 +195,10 @@ export default function ClientsPage() {
             ) : (
               filteredClients.map((client) => (
                 <TableRow key={client.id} className="group hover:bg-primary/5 transition-all duration-300">
-                  <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/10 underline-offset-4">{client.nationalId || 'N/A'}</TableCell>
+                  <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/10 underline-offset-4">{client.national_id || 'N/A'}</TableCell>
                   <TableCell className="px-8 py-6">
                     <div className="flex flex-col">
-                       <span className="font-bold text-slate-800 leading-none mb-1">{client.firstName} {client.lastName}</span>
+                       <span className="font-bold text-slate-800 leading-none mb-1">{client.first_name} {client.last_name}</span>
                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{client.phone}</span>
                     </div>
                   </TableCell>
@@ -207,7 +208,7 @@ export default function ClientsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="px-8 py-6 text-slate-500 font-bold text-xs uppercase tracking-widest">
-                    {client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                    {client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </TableCell>
                   <TableCell className="px-8 py-6 text-right">
                     <Button variant="ghost" size="icon" className="text-slate-300 group-hover:text-slate-600 transition-colors h-10 w-10 rounded-xl">
