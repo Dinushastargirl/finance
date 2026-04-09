@@ -103,4 +103,13 @@
   .card-hover {
     @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98];
   }
-}
+
+  /* Hides the scrollbar visually while keeping scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;   /* IE & Edge */
+    scrollbar-width: none;      /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;              /* Chrome, Safari, Opera */
+  }
+}
