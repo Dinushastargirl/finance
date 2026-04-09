@@ -40,7 +40,7 @@ export async function GET() {
     const authUsers = authUsersResponse?.users || [];
 
     // 1. Ensure Admin Profile
-    const adminUser = authUsers.find(u => u.email === 'admin@rupasinghe.com');
+    const adminUser = authUsers.find((u: any) => u.email === 'admin@rupasinghe.com');
     if (adminUser) {
       await supabase.from('profiles').upsert({
         id: adminUser.id,
@@ -54,7 +54,7 @@ export async function GET() {
 
     // 2. Process Branches
     for (const branch of branchData) {
-      const existingUser = authUsers.find(u => u.email === branch.email);
+      const existingUser = authUsers.find((u: any) => u.email === branch.email);
       let userId = existingUser?.id;
 
       if (!existingUser) {
