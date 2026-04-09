@@ -20,10 +20,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { nic, firstName, lastName, phone, branchId } = body;
+    const { nic, firstName, lastName, phone, branchId, createdByUserId } = body;
     
-    if (!nic || !firstName || !lastName || !branchId) {
-      return NextResponse.json({ error: "Missing required fields (nic, firstName, lastName, branchId)" }, { status: 400 });
+    if (!nic || !firstName || !lastName || !branchId || !createdByUserId) {
+      return NextResponse.json({ error: "Missing required fields (nic, firstName, lastName, branchId, createdByUserId)" }, { status: 400 });
     }
 
     // Database expects a UUID, so we generate a standard one
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       lastName: lastName,
       phone: phone,
       branchId: branchId,
+      createdByUserId: createdByUserId,
       status: 'ACTIVE',
       createdAt: new Date().toISOString()
     }]).select().single();
