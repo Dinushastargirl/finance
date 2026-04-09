@@ -6,10 +6,20 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, UserPlus, Sparkles, Filter, MoreVertical, RefreshCcw } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { 
+  Plus, Search, UserPlus, Sparkles, Filter, MoreVertical, RefreshCcw, 
+  Pencil, Trash2, ShieldCheck, UserCog 
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 
 export default function ClientsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +35,7 @@ export default function ClientsPage() {
   const [phone, setPhone] = useState('');
   const [branchId, setBranchId] = useState('');
   const [userId, setUserId] = useState('');
+  const [editingClient, setEditingClient] = useState<any>(null);
 
   const loadClients = async () => {
     try {
@@ -63,13 +74,23 @@ export default function ClientsPage() {
     }
 
     setIsSaving(true);
-    const toastId = toast.loading("Saving customer profile...");
+    const toastId = toast.loading(editingClient ? "Updating customer profile..." : "Saving customer profile...");
 
     try {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
+      const url = editingClient ? `/api/clients/${editingClient.id}` : '/api/clients';
+      const method = editingClient ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nic, firstName, lastName, phone, branchId, createdByUserId: userId })
+        body: JSON.stringify({ 
+          nic, 
+          firstName, 
+          lastName, 
+          phone, 
+          branchId, 
+          createdByUserId: userId 
+        })
       });
 
       if (!res.ok) {
@@ -77,9 +98,10 @@ export default function ClientsPage() {
         throw new Error(errorData.error || "Failed to save");
       }
 
-      toast.success("Customer saved successfully!", { id: toastId });
+      toast.success(editingClient ? "Customer updated successfully!" : "Customer saved successfully!", { id: toastId });
       
       setIsOpen(false);
+      setEditingClient(null);
       setNic(''); setFirstName(''); setLastName(''); setPhone('');
       await loadClients();
     } catch(err: any) {
@@ -90,6 +112,29 @@ export default function ClientsPage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const openEditDialog = (client: any) => {
+    setEditingClient(client);
+    setNic(client.nationalId || '');
+    setFirstName(client.firstName || '');
+    setLastName(client.lastName || '');
+    setPhone(client.phone || '');
+    setIsOpen(true);
+  };
+
+  const handleDelete = async (client: any) => {
+    if (!confirm(`Are you sure you want to remove ${client.firstName} ${client.lastName}?`)) return;
+
+    const toastId = toast.loading("Deleting customer...");
+    try {
+      const res = await fetch(`/api/clients/${client.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Delete failed");
+      toast.success("Customer removed successfully", { id: toastId });
+      loadClients();
+    } catch (err) {
+      toast.error("Could not delete customer", { id: toastId });
     }
   };
 
@@ -122,10 +167,11 @@ export default function ClientsPage() {
           <div className="p-8 space-y-6">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-3">
-                 Add Customer
+                 {editingClient ? <UserCog className="w-6 h-6 text-primary" /> : <UserPlus className="w-6 h-6 text-primary" />}
+                 {editingClient ? "Edit Customer" : "Add Customer"}
               </DialogTitle>
               <DialogDescription className="font-medium text-slate-500">
-                Enter name and details to create a new customer profile.
+                {editingClient ? "Update current customer information." : "Enter name and details to create a new customer profile."}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6">
@@ -149,7 +195,7 @@ export default function ClientsPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <Button variant="ghost" className="font-bold text-slate-500 h-12 rounded-xl" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button variant="ghost" className="font-bold text-slate-500 h-12 rounded-xl" onClick={() => { setIsOpen(false); setEditingClient(null); }}>Cancel</Button>
               <Button 
                 disabled={isSaving}
                 onClick={handleSave} 
@@ -220,9 +266,23 @@ export default function ClientsPage() {
                     {client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </TableCell>
                   <TableCell className="px-8 py-6 text-right">
-                    <Button variant="ghost" size="icon" className="text-slate-300 group-hover:text-slate-600 transition-colors h-10 w-10 rounded-xl">
-                       <MoreVertical className="w-4 h-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-slate-300 hover:text-primary hover:bg-primary/10 transition-all h-10 w-10 rounded-xl">
+                           <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 glass p-2 rounded-2xl border-white/40 shadow-2xl">
+                        <DropdownMenuLabel className="px-4 py-2 font-black text-[9px] uppercase tracking-widest text-slate-400">Operations</DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-slate-100/50" />
+                        <DropdownMenuItem onClick={() => openEditDialog(client)} className="gap-3 px-4 py-3 rounded-xl font-bold text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
+                          <Pencil className="w-4 h-4" /> Edit Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(client)} className="gap-3 px-4 py-3 rounded-xl font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                          <Trash2 className="w-4 h-4" /> Delete Record
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
