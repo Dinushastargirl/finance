@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
   Plus, Search, FileText, Package, TrendingUp, AlertTriangle,
-  Pencil, Trash2, RefreshCcw, Sparkles, Filter
+  Pencil, Trash2, RefreshCcw, Sparkles, Filter, UserCheck
 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -51,6 +51,10 @@ export default function PawnesPage() {
   const [appraisal, setAppraisal]       = useState('');
   const [amount, setAmount]             = useState('');
 
+  // Client lookup map: { nationalId/id -> "First Last" }
+  const [clientsMap, setClientsMap]     = useState<Record<string, string>>({});
+  const [resolvedName, setResolvedName] = useState('');
+
   const loadUser = () => {
     const stored = localStorage.getItem('user');
     if (stored) {
@@ -61,6 +65,24 @@ export default function PawnesPage() {
       return u;
     }
     return null;
+  };
+
+  // Build a map of { nationalId -> "First Last", id -> "First Last" } for fast lookups
+  const loadClients = async (u?: any) => {
+    try {
+      const user = u || JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await fetch(`/api/clients?branchId=${user?.branchId || ''}&role=${user?.role || ''}`);
+      if (res.ok) {
+        const data: any[] = await res.json();
+        const map: Record<string, string> = {};
+        data.forEach(c => {
+          const name = `${c.firstName || c.first_name || ''} ${c.lastName || c.last_name || ''}`.trim();
+          if (c.nationalId || c.national_id) map[(c.nationalId || c.national_id).toLowerCase()] = name;
+          if (c.id) map[c.id.toLowerCase()] = name;
+        });
+        setClientsMap(map);
+      }
+    } catch (e) { console.error('Failed to load clients map', e); }
   };
 
   const loadPawns = async (u?: any) => {
@@ -89,6 +111,7 @@ export default function PawnesPage() {
   useEffect(() => {
     const u = loadUser();
     loadPawns(u);
+    loadClients(u);
   }, []);
 
   // Reload when admin changes branch filter
@@ -96,16 +119,25 @@ export default function PawnesPage() {
     if (userRole === 'ADMIN') loadPawns();
   }, [filterBranch]);
 
+  // Resolve customer name when NIC/ID is typed
+  const handleClientIdChange = (val: string) => {
+    setClientId(val);
+    const name = clientsMap[val.toLowerCase().trim()];
+    setResolvedName(name || '');
+  };
+
   const resetForm = () => {
     setClientId(''); setDescription(''); setAppraisal(''); setAmount('');
-    setEditingPawn(null);
+    setEditingPawn(null); setResolvedName('');
   };
 
   const openAdd = () => { resetForm(); setIsOpen(true); };
 
   const openEdit = (pawn: any) => {
     setEditingPawn(pawn);
-    setClientId(pawn.client_id || '');
+    const cid = pawn.client_id || '';
+    setClientId(cid);
+    setResolvedName(clientsMap[cid.toLowerCase()] || '');
     setDescription(pawn.description || '');
     setAppraisal(String(pawn.appraised_value || ''));
     setAmount(String(pawn.disbursed_amount || ''));
@@ -233,10 +265,16 @@ export default function PawnesPage() {
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Customer ID or NIC</Label>
                 <Input
                   value={clientId}
-                  onChange={e => setClientId(e.target.value)}
+                  onChange={e => handleClientIdChange(e.target.value)}
                   placeholder="Search customer database..."
                   className="h-12 bg-white/50 rounded-xl"
                 />
+                {resolvedName && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-emerald-700 font-black text-sm">{resolvedName}</span>
+                  </div>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Pawn Item Description</Label>
@@ -356,8 +394,18 @@ export default function PawnesPage() {
                   <TableCell className="px-8 py-5 font-black text-slate-500 text-[11px] tracking-widest">
                     #{pawn.id?.substring(0, 8).toUpperCase()}
                   </TableCell>
-                  <TableCell className="px-8 py-5 font-black text-slate-900 group-hover:text-primary transition-colors">
-                    {pawn.client_id || '—'}
+                  <TableCell className="px-8 py-5">
+                    <div className="flex flex-col">
+                      <span className="font-black text-slate-900 group-hover:text-primary transition-colors text-sm">
+                        {pawn.client_id || '—'}
+                      </span>
+                      {clientsMap[pawn.client_id?.toLowerCase()] && (
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                          <UserCheck className="w-3 h-3" />
+                          {clientsMap[pawn.client_id?.toLowerCase()]}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="px-8 py-5 font-bold text-slate-700 max-w-[200px] truncate">
                     {pawn.description}
