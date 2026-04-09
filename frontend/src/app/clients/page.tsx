@@ -16,6 +16,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form State
   const [nic, setNic] = useState('');
@@ -50,9 +51,11 @@ export default function ClientsPage() {
 
     setIsSaving(true);
     const toastId = toast.loading("Saving customer profile...");
+    const clientId = `CLI-${Date.now().toString().slice(-6)}`;
 
     try {
       const { error } = await supabase.from('client').insert([{
+        id: clientId,
         nationalId: nic,
         firstName,
         lastName,
@@ -78,6 +81,13 @@ export default function ClientsPage() {
       setIsSaving(false);
     }
   };
+
+  const filteredClients = clients.filter(client => 
+    client.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.nationalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.phone?.includes(searchQuery)
+  );
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
@@ -147,7 +157,12 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search customers by Name or NIC..." className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50 rounded-2xl" />
+          <Input 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search customers by Name or NIC..." 
+            className="pl-12 h-14 bg-white/50 border-white/40 glass focus:ring-primary shadow-lg shadow-slate-200/50 rounded-2xl" 
+          />
         </div>
         <Button variant="outline" className="h-14 px-6 border-white/40 glass font-black text-[10px] uppercase tracking-widest text-slate-500 gap-2 rounded-2xl">
            <Filter className="w-4 h-4" /> Filter
@@ -169,7 +184,7 @@ export default function ClientsPage() {
           <TableBody className="divide-y divide-slate-50">
             {loading ? (
                <TableRow><TableCell colSpan={5} className="h-64 text-center font-black text-slate-300 animate-pulse tracking-widest uppercase">Initializing directory metadata...</TableCell></TableRow>
-            ) : clients.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
                <TableRow>
                  <TableCell colSpan={5} className="h-64 text-center">
                     <p className="text-slate-400 font-bold mb-4">No customer fingerprints detected.</p>
@@ -177,7 +192,7 @@ export default function ClientsPage() {
                  </TableCell>
                </TableRow>
             ) : (
-              clients.map((client) => (
+              filteredClients.map((client) => (
                 <TableRow key={client.id} className="group hover:bg-primary/5 transition-all duration-300">
                   <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/10 underline-offset-4">{client.nationalId || 'N/A'}</TableCell>
                   <TableCell className="px-8 py-6">
