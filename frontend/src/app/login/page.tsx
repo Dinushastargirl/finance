@@ -42,8 +42,8 @@ export default function LoginPage() {
         email: data.user.email, 
         id: data.user.id,
         role: profile?.role || 'TELLER',
-        branchId: profile?.branchId || 'HQ',
-        branchName: profile?.branchName || 'Head Office'
+        branchId: profile?.branch_id || 'HQ',
+        branchName: profile?.branch_name || 'Head Office'
       }));
       window.location.href = '/'; 
     } catch (err: any) {

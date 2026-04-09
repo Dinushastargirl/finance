@@ -120,9 +120,9 @@ export default function ClientsPage() {
 
   const openEditDialog = (client: any) => {
     setEditingClient(client);
-    setNic(client.nationalId || '');
-    setFirstName(client.firstName || '');
-    setLastName(client.lastName || '');
+    setNic(client.national_id || '');
+    setFirstName(client.first_name || '');
+    setLastName(client.last_name || '');
     setPhone(client.phone || '');
     setIsOpen(true);
   };
@@ -142,9 +142,9 @@ export default function ClientsPage() {
   };
 
   const filteredClients = clients.filter(client => 
-    client.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.nationalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.national_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.phone?.includes(searchQuery)
   );
 
@@ -253,10 +253,10 @@ export default function ClientsPage() {
             ) : (
               filteredClients.map((client) => (
                 <TableRow key={client.id} className="group hover:bg-primary/5 transition-all duration-300">
-                  <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/10 underline-offset-4">{client.nationalId || 'N/A'}</TableCell>
+                  <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/10 underline-offset-4">{client.national_id || 'N/A'}</TableCell>
                   <TableCell className="px-8 py-6">
                     <div className="flex flex-col">
-                       <span className="font-bold text-slate-800 leading-none mb-1">{client.firstName} {client.lastName}</span>
+                       <span className="font-bold text-slate-800 leading-none mb-1">{client.first_name} {client.last_name}</span>
                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{client.phone}</span>
                     </div>
                   </TableCell>
@@ -266,7 +266,7 @@ export default function ClientsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="px-8 py-6 text-slate-500 font-bold text-xs uppercase tracking-widest">
-                    {client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                    {client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </TableCell>
                   <TableCell className="px-8 py-6 text-right">
                     <DropdownMenu>

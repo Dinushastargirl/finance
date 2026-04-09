@@ -21,15 +21,15 @@ export async function GET(request: Request) {
     const branchId = searchParams.get('branchId');
     const role = searchParams.get('role');
 
-    let query = supabase.from('clients').select('*').order('createdAt', { ascending: false });
+    let query = supabase.from('clients').select('*').order('created_at', { ascending: false });
 
     // Multi-tenant isolation: Tellers can ONLY see their own branch
     if (role === 'TELLER' && branchId) {
-      query = query.eq('branchId', branchId);
+      query = query.eq('branch_id', branchId);
     } 
-    // Admins can see specific branches if filtered, or everything if not
+    // Admins can see specific branches if filtered
     else if (branchId && branchId !== 'HQ') {
-      query = query.eq('branchId', branchId);
+      query = query.eq('branch_id', branchId);
     }
 
     const { data, error } = await query;
@@ -58,14 +58,14 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase.from('clients').insert([{
       id: clientId,
-      nationalId: nic,
-      firstName: firstName,
-      lastName: lastName,
+      national_id: nic,
+      first_name: firstName,
+      last_name: lastName,
       phone: phone,
-      branchId: branchId,
-      createdByUserId: createdByUserId,
+      branch_id: branchId,
+      created_by_user_id: createdByUserId,
       status: 'ACTIVE',
-      createdAt: new Date().toISOString()
+      created_at: new Date().toISOString()
     }]).select().single();
 
     if (error) throw error;
