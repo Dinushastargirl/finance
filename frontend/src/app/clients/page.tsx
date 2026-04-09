@@ -267,10 +267,8 @@ export default function ClientsPage() {
                   </TableCell>
                   <TableCell className="px-8 py-6 text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-slate-300 hover:text-primary hover:bg-primary/10 transition-all h-10 w-10 rounded-xl">
-                           <MoreVertical className="w-4 h-4" />
-                        </Button>
+                      <DropdownMenuTrigger className="text-slate-300 hover:text-primary hover:bg-primary/10 transition-all h-10 w-10 rounded-xl inline-flex items-center justify-center border-none bg-transparent cursor-pointer outline-none">
+                         <MoreVertical className="w-4 h-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 glass p-2 rounded-2xl border-white/40 shadow-2xl">
                         <DropdownMenuLabel className="px-4 py-2 font-black text-[9px] uppercase tracking-widest text-slate-400">Operations</DropdownMenuLabel>
