@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('clients').select('*');
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error: any) {
@@ -33,8 +33,7 @@ export async function POST(request: Request) {
       first_name: body.firstName,
       last_name: body.lastName,
       phone: body.phone,
-      status: 'ACTIVE',
-      created_at: new Date().toISOString()
+      status: 'ACTIVE'
     }]).select().single();
 
     if (error) throw error;
