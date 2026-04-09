@@ -27,11 +27,15 @@ export default function LoginPage() {
       }
 
       // Fetch Profile for the logged-in user
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single();
+      
+      if (profileError) {
+        console.warn("Profile fetch failed. Check RLS policies:", profileError.message);
+      }
 
       localStorage.setItem('auth_token', data.session?.access_token || '');
       localStorage.setItem('user', JSON.stringify({ 

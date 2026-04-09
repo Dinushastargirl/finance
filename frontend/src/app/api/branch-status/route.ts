@@ -56,9 +56,13 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error("Supabase toggle error:", error);
+        throw error;
+    }
     return NextResponse.json(data);
   } catch (error: any) {
+    console.error("Branch toggle API failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
