@@ -6,17 +6,31 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
-  const tables = ['client', 'clients', 'customer', 'customers', 'borrower', 'borrowers', 'profile', 'profiles'];
-  const results: any = {};
+  const result: any = {
+    tableCheck: {},
+    columns: null
+  };
 
+  // Check which table exists
+  const tables = ['clients', 'client'];
   for (const table of tables) {
-    const { error } = await supabase.from(table).select('count').limit(1);
+    const { data, error } = await supabase.from(table).select('*').limit(1);
     if (!error) {
-      results[table] = 'FOUND';
+      result.tableCheck[table] = 'FOUND';
+      if (data && data.length > 0) {
+        result.columns = Object.keys(data[0]);
+      } else {
+        // If empty, try to get column names from another way or just try a few selects
+        result.columns = "Table is empty, cannot infer columns from data[0]";
+      }
     } else {
-      results[table] = error.message;
+      result.tableCheck[table] = error.message;
     }
   }
 
-  return NextResponse.json(results);
+  // Also try specific column checks if we think it's camelCase
+  const { error: colError } = await supabase.from('clients').select('createdAt').limit(1);
+  result.createdAtCheck = colError ? colError.message : 'FOUND';
+
+  return NextResponse.json(result);
 }
