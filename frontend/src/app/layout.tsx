@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AuthGuard from '@/components/AuthGuard';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import AppShell from '@/components/AppShell';
 
 const interFont = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
@@ -19,14 +19,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body style={{ fontFamily: interFont }} className="bg-background text-foreground dashboard-shell antialiased" suppressHydrationWarning>
         <AuthGuard>
-          <div className="flex min-h-screen relative w-full overflow-x-hidden">
-            <DashboardSidebar />
-            <main className="flex-1 transition-all duration-500 ml-24 lg:ml-72 min-h-screen flex flex-col">
-              <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto w-full">
-                {children}
-              </div>
-            </main>
-          </div>
+          <AppShell>
+            {children}
+          </AppShell>
         </AuthGuard>
       </body>
     </html>
