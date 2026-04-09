@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('clients').select('*');
+    const { data, error } = await supabase.from('clients').select('*').order('createdAt', { ascending: false });
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error: any) {
@@ -29,11 +29,12 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase.from('clients').insert([{
       id: clientId,
-      national_id: body.nic,
-      first_name: body.firstName,
-      last_name: body.lastName,
+      nationalId: body.nic,
+      firstName: body.firstName,
+      lastName: body.lastName,
       phone: body.phone,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString()
     }]).select().single();
 
     if (error) throw error;
