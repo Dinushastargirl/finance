@@ -20,9 +20,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const { nic, firstName, lastName, phone, branchId } = body;
     
-    if (!body.nic || !body.firstName || !body.lastName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!nic || !firstName || !lastName || !branchId) {
+      return NextResponse.json({ error: "Missing required fields (nic, firstName, lastName, branchId)" }, { status: 400 });
     }
 
     // Database expects a UUID, so we generate a standard one
@@ -30,10 +31,11 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase.from('clients').insert([{
       id: clientId,
-      nationalId: body.nic,
-      firstName: body.firstName,
-      lastName: body.lastName,
-      phone: body.phone,
+      nationalId: nic,
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+      branchId: branchId,
       status: 'ACTIVE',
       createdAt: new Date().toISOString()
     }]).select().single();

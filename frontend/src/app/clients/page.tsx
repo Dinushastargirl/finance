@@ -23,9 +23,16 @@ export default function ClientsPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [branchId, setBranchId] = useState('');
 
   const loadClients = async () => {
     try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        setBranchId(user.branchId || 'HQ');
+      }
+
       const res = await fetch('/api/clients');
       if (res.ok) {
         const data = await res.json();
@@ -60,7 +67,7 @@ export default function ClientsPage() {
       const res = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nic, firstName, lastName, phone })
+        body: JSON.stringify({ nic, firstName, lastName, phone, branchId })
       });
 
       if (!res.ok) {
