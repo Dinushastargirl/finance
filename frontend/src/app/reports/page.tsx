@@ -27,7 +27,7 @@ export default function ReportsPage() {
       if (error) throw error;
 
       if (txs) {
-        const totalDisbursed = txs.filter(t => t.type === 'PAWN').reduce((acc, t) => acc + (t.amount || 0), 0);
+        const totalDisbursed = txs.filter(t => t.type === 'PAWN' || t.type === 'PAWN_DISBURSE').reduce((acc, t) => acc + (t.amount || 0), 0);
         
         setPortfolio({
           totalDisbursed,
