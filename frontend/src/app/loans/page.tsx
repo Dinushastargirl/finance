@@ -190,7 +190,7 @@ export default function PawnesPage() {
         <div className="flex items-center gap-3 w-full md:w-auto">
           {/* Admin Branch Filter */}
           {userRole === 'ADMIN' && (
-            <Select value={filterBranch} onValueChange={setFilterBranch}>
+            <Select value={filterBranch} onValueChange={(v) => v && setFilterBranch(v)}>
               <SelectTrigger className="h-14 w-48 bg-white/70 border-white/40 font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-lg">
                 <Filter className="w-3 h-3 mr-2 text-slate-400" />
                 <SelectValue />
