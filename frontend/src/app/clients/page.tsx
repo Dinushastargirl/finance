@@ -271,9 +271,9 @@ export default function ClientsPage() {
                          <MoreVertical className="w-4 h-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 glass p-2 rounded-2xl border-white/40 shadow-2xl">
-                        <DropdownMenuLabel className="px-4 py-2 font-black text-[9px] uppercase tracking-widest text-slate-400">Operations</DropdownMenuLabel>
+                        <div className="px-4 py-2 font-black text-[9px] uppercase tracking-widest text-slate-400">Operations</div>
                         <DropdownMenuSeparator className="bg-slate-100/50" />
-                        <DropdownMenuItem onClick={() => openEditDialog(client)} className="gap-3 px-4 py-3 rounded-xl font-bold text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
+                        <DropdownMenuItem onClick={() => openEditDialog(client)} className="gap-3 px-4 py-3 rounded-xl font-bold text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer outline-none">
                           <Pencil className="w-4 h-4" /> Edit Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(client)} className="gap-3 px-4 py-3 rounded-xl font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
