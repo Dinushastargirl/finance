@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Briefcase, UserPlus, ShieldAlert, Trash2 } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api-config"
 
 export default function EmployeesPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/users', {
+      const res = await fetch(`${API_BASE_URL}/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

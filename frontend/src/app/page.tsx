@@ -36,6 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const statsTemplate = [
   { label: "Total Cash", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
@@ -378,6 +379,5 @@ export default function Home() {
   );
 }
 
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
+  );
 }

@@ -4,10 +4,19 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Safe initialization to prevent build-time crashes when secrets are unavailable
+let supabase: any;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized (Key missing during build)" }, { status: 500 });
+    }
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get('branchId');
     const role = searchParams.get('role');
@@ -34,6 +43,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized (Key missing during build)" }, { status: 500 });
+    }
     const body = await request.json();
     const { nic, firstName, lastName, phone, branchId, createdByUserId } = body;
     

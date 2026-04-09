@@ -3,11 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// Safe initialization to prevent build-time crashes
+let supabase: any;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
+
+export const dynamic = 'force-dynamic';
+
+export async function PATCH(request: Request, context: any) {
   try {
-    const { id } = await params;
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized (Key missing during build)" }, { status: 500 });
+    }
+    const { id } = await context.params;
     const body = await request.json();
 
     const { data, error } = await supabase
@@ -31,9 +41,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, context: any) {
   try {
-    const { id } = await params;
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized (Key missing during build)" }, { status: 500 });
+    }
+    const { id } = await context.params;
     const { error } = await supabase
       .from('clients')
       .delete()

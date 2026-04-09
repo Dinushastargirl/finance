@@ -3,10 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Initialize client only if key is present to prevent build-time crashes
+let supabase: any;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized" }, { status: 500 });
+    }
     const { data, error } = await supabase
       .from('branch_status')
       .select('*');
@@ -33,6 +43,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing branchId or status" }, { status: 400 });
     }
 
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized" }, { status: 500 });
+    }
     const { data, error } = await supabase
       .from('branch_status')
       .upsert({

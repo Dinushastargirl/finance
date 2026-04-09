@@ -4,16 +4,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-if (!supabaseKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for seeding operations.");
+// Initialize only if key available to prevent build crash
+let supabase: any;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+export const dynamic = 'force-dynamic';
 
 const branchData = [
   { name: "Borella", id: "BRL", email: "branch.brl@rupasinghe.com", password: "Borella123" },
@@ -30,6 +32,9 @@ const branchData = [
 
 export async function GET() {
   try {
+    if (!supabase) {
+        return NextResponse.json({ error: "Supabase not initialized (Key missing during build)" }, { status: 500 });
+    }
     const results: any[] = [];
     const { data: authUsersResponse } = await supabase.auth.admin.listUsers();
     const authUsers = authUsersResponse?.users || [];
