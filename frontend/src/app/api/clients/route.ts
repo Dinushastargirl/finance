@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('client').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error: any) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const clientId = `CLI-${Date.now().toString().slice(-6)}`;
 
-    const { data, error } = await supabase.from('client').insert([{
+    const { data, error } = await supabase.from('clients').insert([{
       id: clientId,
       national_id: body.nic,
       first_name: body.firstName,
