@@ -34,7 +34,7 @@ const navGroups = [
     label: "Finance",
     items: [
       { name: 'Customers', href: '/clients', icon: Users },
-      { name: 'Loans', href: '/loans', icon: Wallet },
+      { name: 'Pawnes', href: '/loans', icon: Wallet },
       { name: 'Accounts', href: '/savings', icon: PiggyBank },
       { name: 'Records', href: '/accounting/ledger', icon: FileText },
     ]
