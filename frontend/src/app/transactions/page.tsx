@@ -29,9 +29,9 @@ export default function TransactionsPage() {
 
       let query = supabase.from('transaction').select('*').order('timestamp', { ascending: false });
       
-      // Multi-tenant isolation
+      // Multi-tenant isolation (transaction table uses snake_case branch_id)
       if (role === 'TELLER' && branchId) {
-        query = query.eq('branchId', branchId);
+        query = query.eq('branch_id', branchId);
       }
 
       const { data, error } = await query;
@@ -58,7 +58,7 @@ export default function TransactionsPage() {
       const { error } = await supabase.from('transaction').insert([{
         clientId: 'INTERNAL_TRANSFER',
         type: 'TRANSFER',
-        branchId: user?.branchId || 'HQ',
+        branch_id: user?.branchId || 'HQ',
         targetBranchId: targetBranchId || 'UNKNOWN',
         amount: parseFloat(amount) || 0,
         description: description || 'Routine Branch Balancing',
