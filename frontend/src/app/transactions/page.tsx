@@ -22,7 +22,19 @@ export default function TransactionsPage() {
 
   const loadTransactions = async () => {
     try {
-      const { data, error } = await supabase.from('transaction').select('*').order('timestamp', { ascending: false });
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const branchId = user?.branchId;
+      const role = user?.role;
+
+      let query = supabase.from('transaction').select('*').order('timestamp', { ascending: false });
+      
+      // Multi-tenant isolation
+      if (role === 'TELLER' && branchId) {
+        query = query.eq('branchId', branchId);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       if (data) {
         setTransactions(data);
@@ -40,9 +52,13 @@ export default function TransactionsPage() {
 
   const handleTransfer = async () => {
     try {
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+
       const { error } = await supabase.from('transaction').insert([{
         clientId: 'INTERNAL_TRANSFER',
         type: 'TRANSFER',
+        branchId: user?.branchId || 'HQ',
         targetBranchId: targetBranchId || 'UNKNOWN',
         amount: parseFloat(amount) || 0,
         description: description || 'Routine Branch Balancing',

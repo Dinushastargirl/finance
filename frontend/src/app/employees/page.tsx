@@ -44,7 +44,7 @@ export default function EmployeesPage() {
   const handleCreate = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch('http://localhost:8080/users', {
+      const res = await fetch(`${API_BASE_URL}/users`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export default function EmployeesPage() {
     if (!confirm('Are you heavily certain you want to purge this operative?')) return;
     try {
       const token = localStorage.getItem('auth_token');
-      await fetch(`http://localhost:8080/users/${id}`, {
+      await fetch(`${API_BASE_URL}/users/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
