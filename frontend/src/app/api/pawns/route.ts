@@ -63,6 +63,18 @@ export async function POST(request: Request) {
     }]).select().single();
 
     if (error) throw error;
+
+    // 3. Record in transactions table for the ledger/dashboard
+    await supabase.from('transaction').insert([{
+      id: crypto.randomUUID(),
+      clientId: clientId,
+      type: 'PAWN_DISBURSE',
+      amount: parseFloat(disbursedAmount) || 0,
+      description: `Pawn Disbursement: ${description}`,
+      branch_id: branchId,
+      timestamp: new Date().toISOString()
+    }]);
+
     return NextResponse.json(data, { status: 201 });
   } catch (error: any) {
     console.error('Pawns POST error:', error);

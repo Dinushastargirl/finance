@@ -39,10 +39,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const statsTemplate = [
-  { label: "Total Cash", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
-  { label: "Active Loans", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
+  { label: "Total Pawn Value", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
+  { label: "Active Pawnes", value: "0", change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
   { label: "Total Customers", value: "0", change: "+0.0%", trend: "up", icon: Users, color: "primary" },
-  { label: "System Health", value: "Good", change: "Online", trend: "up", icon: Zap, color: "indigo" },
+  { label: "System Health", value: "Online", change: "99.9%", trend: "up", icon: Zap, color: "indigo" },
 ];
 
 const revenueData = [
@@ -115,20 +115,27 @@ export default function Home() {
 
   const loadDashboardData = async () => {
     try {
-      const { data: clients } = await supabase.from('client').select('id');
+      // 1. Get Customers Count
+      const { count: clientCount } = await supabase.from('clients').select('*', { count: 'exact', head: true });
+      
+      // 2. Get Pawnes Data (Sum and Count)
+      const { data: pawnsData } = await supabase.from('pawns').select('disbursed_amount');
+      const totalPawnSum = (pawnsData || []).reduce((acc, p) => acc + (p.disbursed_amount || 0), 0);
+      const activePawns = (pawnsData || []).length;
+
+      // 3. Get Recent Transactions
       const { data: txs } = await supabase.from('transaction').select('*').order('timestamp', { ascending: false }).limit(6);
 
-      if (clients && txs) {
-        setStats([
-          { label: "Total Cash", value: "Rs. 4.2M", change: "+12.5%", trend: "up", icon: DollarSign, color: "emerald" },
-          { label: "Active Loans", value: "1,234", change: "+8.2%", trend: "up", icon: CreditCard, color: "blue" },
-          { label: "Total Customers", value: clients.length.toString(), change: "+15.3%", trend: "up", icon: Users, color: "primary" },
-          { label: "System Health", value: "99.9%", change: "Online", trend: "up", icon: Zap, color: "indigo" },
-        ]);
-        setRecentTransactions(txs);
-      }
+      setStats([
+        { label: "Total Pawn Value", value: `Rs. ${totalPawnSum.toLocaleString()}`, change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
+        { label: "Active Pawnes", value: activePawns.toString(), change: "+0.0%", trend: "up", icon: CreditCard, color: "blue" },
+        { label: "Total Customers", value: (clientCount || 0).toString(), change: "+0.0%", trend: "up", icon: Users, color: "primary" },
+        { label: "System Health", value: "Online", change: "100%", trend: "up", icon: Zap, color: "indigo" },
+      ]);
+      
+      if (txs) setRecentTransactions(txs);
     } catch (err) {
-      console.error(err);
+      console.error('Dashboard Load Error:', err);
     }
   };
 
@@ -169,8 +176,8 @@ export default function Home() {
           <Button variant="outline" className="h-14 font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl border-slate-200 glass hover:bg-white shadow-xl">
             History
           </Button>
-          <Button className="h-14 bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl shadow-2xl shadow-primary/30 card-hover">
-            New Loan <ArrowUpRight className="ml-2 w-4 h-4" />
+          <Button className="h-14 bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl shadow-2xl shadow-primary/30 card-hover" onClick={() => window.location.href='/loans'}>
+            New Pawn <ArrowUpRight className="ml-2 w-4 h-4" />
           </Button>
         </div>
       </div>
