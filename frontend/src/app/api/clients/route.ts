@@ -25,7 +25,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const clientId = `CLI-${Date.now().toString().slice(-6)}`;
+    // Database expects a UUID, so we generate a standard one
+    const clientId = crypto.randomUUID();
 
     const { data, error } = await supabase.from('clients').insert([{
       id: clientId,
