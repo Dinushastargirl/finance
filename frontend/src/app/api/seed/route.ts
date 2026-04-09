@@ -28,20 +28,14 @@ const branchData = [
   { name: "Homagama", id: "HMG", email: "branch.hmg@rupasinghe.com", password: "Homagama123" },
 ];
 
-export async function GET(request: Request) {
-  return POST(request);
-}
-
-export async function POST(request: Request) {
+export async function GET() {
   try {
     const results: any[] = [];
+    const { data: authUsersResponse } = await supabase.auth.admin.listUsers();
+    const authUsers = authUsersResponse?.users || [];
 
-    // 1. Ensure the head office admin profile exists
-    // We assume the auth user already exists as the user used it to log in
-    // admin@rupasinghe.com
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-    const adminUser = authUsers?.users.find(u => u.email === 'admin@rupasinghe.com');
-    
+    // 1. Ensure Admin Profile
+    const adminUser = authUsers.find(u => u.email === 'admin@rupasinghe.com');
     if (adminUser) {
       await supabase.from('profiles').upsert({
         id: adminUser.id,
@@ -50,13 +44,12 @@ export async function POST(request: Request) {
         branchName: 'Head Office',
         role: 'ADMIN'
       });
-      results.push({ email: 'admin@rupasinghe.com', status: 'Admin Profile Updated' });
+      results.push({ email: 'admin@rupasinghe.com', status: 'Admin Profile Set' });
     }
 
-    // 2. Create the 10 branch users
+    // 2. Process Branches
     for (const branch of branchData) {
-      // Check if user already exists
-      const existingUser = authUsers?.users.find(u => u.email === branch.email);
+      const existingUser = authUsers.find(u => u.email === branch.email);
       let userId = existingUser?.id;
 
       if (!existingUser) {
@@ -67,13 +60,13 @@ export async function POST(request: Request) {
         });
         
         if (createError) {
-          results.push({ email: branch.email, status: 'Error', error: createError.message });
+          results.push({ email: branch.email, status: 'Error Creating User', error: createError.message });
           continue;
         }
         userId = newUser.user.id;
       }
 
-      // Create/Update profile
+      // Upsert Profile
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: userId,
         email: branch.email,
@@ -82,16 +75,22 @@ export async function POST(request: Request) {
         role: 'TELLER'
       });
 
-      if (profileError) {
-        results.push({ email: branch.email, status: 'Profile Error', error: profileError.message });
-      } else {
-        results.push({ email: branch.email, status: existingUser ? 'Profile Updated' : 'User Created' });
-      }
+      // Initial Branch Status (CLOSED by default)
+      await supabase.from('branch_status').upsert({
+        branchId: branch.id,
+        status: 'CLOSED',
+        updatedAt: new Date().toISOString()
+      }, { onConflict: 'branchId' });
+
+      results.push({ 
+        email: branch.email, 
+        status: existingUser ? 'Profile Updated' : 'User/Profile Created',
+        profileError: profileError?.message
+      });
     }
 
     return NextResponse.json({ success: true, results });
   } catch (error: any) {
-    console.error("Seed Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

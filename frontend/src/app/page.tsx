@@ -14,6 +14,10 @@ import {
   Zap,
   LineChart as LineChartIcon,
   ShieldCheck,
+  Building2,
+  Lock,
+  Unlock,
+  Power
 } from "lucide-react";
 import {
   AreaChart,
@@ -28,9 +32,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { supabase } from "@/lib/supabase";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const statsTemplate = [
   { label: "Total Cash", value: "Rs. 0", change: "+0.0%", trend: "up", icon: DollarSign, color: "emerald" },
@@ -58,10 +62,54 @@ const loanDistribution = [
 export default function Home() {
   const [stats, setStats] = useState(statsTemplate);
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [branchId, setBranchId] = useState('');
+  const [branchName, setBranchName] = useState('');
+  const [status, setStatus] = useState('CLOSED');
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setBranchId(user.branchId || '');
+      setBranchName(user.branchName || '');
+      fetchStatus(user.branchId);
+    }
   }, []);
+
+  const fetchStatus = async (bid: string) => {
+    try {
+      const res = await fetch('/api/branch-status');
+      if (res.ok) {
+        const data = await res.json();
+        if (data[bid]) setStatus(data[bid]);
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const toggleStatus = async () => {
+    if (!branchId) return;
+    const newStatus = status === 'OPEN' ? 'CLOSED' : 'OPEN';
+    setIsStatusLoading(true);
+    const toastId = toast.loading(`Setting branch as ${newStatus}...`);
+
+    try {
+      const res = await fetch('/api/branch-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branchId, status: newStatus })
+      });
+      if (res.ok) {
+        setStatus(newStatus);
+        toast.success(`Branch is now ${newStatus}`, { id: toastId });
+      } else throw new Error();
+    } catch (err) {
+      toast.error("Failed to update status", { id: toastId });
+    } finally {
+      setIsStatusLoading(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -96,13 +144,26 @@ export default function Home() {
             </Badge>
           </div>
           <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
-            Branch <span className="text-linear-to-r from-primary to-indigo-400 bg-clip-text text-transparent italic">Overview</span>
+            {branchName || 'Branch'} <span className="text-linear-to-r from-primary to-indigo-400 bg-clip-text text-transparent italic">Overview</span>
           </h1>
           <p className="text-slate-500 font-bold text-lg max-w-2xl leading-relaxed">
-            Track your branch money, loans, and customers in real-time.
+            Manage operations for {branchName || 'your branch'} in real-time.
           </p>
         </div>
-        <div className="flex gap-4 shrink-0">
+        <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+          <Button 
+            onClick={toggleStatus}
+            disabled={isStatusLoading || !branchId}
+            className={cn(
+              "h-14 font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl shadow-2xl transition-all duration-500 gap-2",
+              status === 'OPEN' 
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200" 
+                : "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200"
+            )}
+          >
+            {status === 'OPEN' ? <Power className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+            {status === 'OPEN' ? "Branch Open" : "Branch Closed"}
+          </Button>
           <Button variant="outline" className="h-14 font-black text-xs uppercase tracking-[0.2em] px-8 rounded-2xl border-slate-200 glass hover:bg-white shadow-xl">
             History
           </Button>

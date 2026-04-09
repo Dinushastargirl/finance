@@ -26,8 +26,21 @@ export default function LoginPage() {
         throw new Error(signInError?.message || 'Invalid branch credentials');
       }
 
+      // Fetch Profile for the logged-in user
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
       localStorage.setItem('auth_token', data.session?.access_token || '');
-      localStorage.setItem('user', JSON.stringify({ email: data.user.email, id: data.user.id }));
+      localStorage.setItem('user', JSON.stringify({ 
+        email: data.user.email, 
+        id: data.user.id,
+        role: profile?.role || 'TELLER',
+        branchId: profile?.branchId || 'HQ',
+        branchName: profile?.branchName || 'Head Office'
+      }));
       window.location.href = '/'; 
     } catch (err: any) {
       setError(err.message);

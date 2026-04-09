@@ -6,9 +6,24 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase.from('clients').select('*').order('createdAt', { ascending: false });
+    const { searchParams } = new URL(request.url);
+    const branchId = searchParams.get('branchId');
+    const role = searchParams.get('role');
+
+    let query = supabase.from('clients').select('*').order('createdAt', { ascending: false });
+
+    // Multi-tenant isolation: Tellers can ONLY see their own branch
+    if (role === 'TELLER' && branchId) {
+      query = query.eq('branchId', branchId);
+    } 
+    // Admins can see specific branches if filtered, or everything if not
+    else if (branchId && branchId !== 'HQ') {
+      query = query.eq('branchId', branchId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error: any) {

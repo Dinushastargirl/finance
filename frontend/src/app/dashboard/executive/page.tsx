@@ -38,15 +38,15 @@ export default function ExecutiveDashboard() {
       const token = localStorage.getItem('auth_token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [pRes, eRes, jRes, vRes] = await Promise.all([
+      const [pRes, sRes, jRes, vRes] = await Promise.all([
         fetch(`${API_BASE_URL}/reports/portfolio`, { headers }),
-        fetch(`${API_BASE_URL}/eod/status`, { headers }),
+        fetch(`/api/branch-status`, { headers }),
         fetch(`${API_BASE_URL}/gl/journal`, { headers }),
         fetch(`${API_BASE_URL}/vault`, { headers })
       ]);
 
       if (pRes.ok) setPortfolio(await pRes.json());
-      if (eRes.ok) setEodStatus(await eRes.json());
+      if (sRes.ok) setEodStatus(await sRes.json());
       if (jRes.ok) setJournals(await jRes.json());
       if (vRes.ok) setVaults(await vRes.json());
       
@@ -131,7 +131,18 @@ export default function ExecutiveDashboard() {
   );
 
   const totalVault = vaults.reduce((sum, v) => sum + (v.balance || 0), 0);
-  const branches = ["BRL","KOT","DMT","WAT","KIR","KDW","DHW","PND","KTW","HMG"];
+  const branches = [
+    { id: "BRL", name: "Borella" },
+    { id: "KOT", name: "Kotikawatta" },
+    { id: "DMT", name: "Dematagoda" },
+    { id: "WAT", name: "Wattala" },
+    { id: "KIR", name: "Kiribathgoda" },
+    { id: "KDW", name: "Kadawatha" },
+    { id: "DHW", name: "Dehiwala" },
+    { id: "PND", name: "Panadura" },
+    { id: "KTW", name: "Kottawa" },
+    { id: "HMG", name: "Homagama" },
+  ];
 
   return (
     <div ref={dashboardRef} className="space-y-8 pb-12 animate-in fade-in duration-700">
@@ -249,6 +260,7 @@ export default function ExecutiveDashboard() {
               <TableHeader className="bg-slate-50/50">
                 <TableRow>
                   <TableHead className="font-black text-slate-400 uppercase text-[10px] tracking-widest pl-10 h-16">Branch ID</TableHead>
+                  <TableHead className="font-black text-slate-400 uppercase text-[10px] tracking-widest h-16">Branch Name</TableHead>
                   <TableHead className="font-black text-slate-400 uppercase text-[10px] tracking-widest h-16">Portfolio</TableHead>
                   <TableHead className="font-black text-slate-400 uppercase text-[10px] tracking-widest h-16">Vault Balance</TableHead>
                   <TableHead className="font-black text-slate-400 uppercase text-[10px] tracking-widest pr-10 text-right h-16">Daily Status</TableHead>
@@ -256,17 +268,18 @@ export default function ExecutiveDashboard() {
               </TableHeader>
               <TableBody>
                 {branches.map(b => (
-                  <TableRow key={b} className="group hover:bg-primary/5 transition-all duration-300">
-                    <TableCell className="font-black text-slate-900 pl-10 py-5">{b}</TableCell>
-                    <TableCell className="font-bold text-slate-600 py-5 italic">Rs. {((portfolio?.byBranch?.[b] || 0)).toLocaleString()}</TableCell>
+                  <TableRow key={b.id} className="group hover:bg-primary/5 transition-all duration-300">
+                    <TableCell className="font-black text-slate-900 pl-10 py-5">{b.id}</TableCell>
+                    <TableCell className="font-bold text-slate-500 py-5">{b.name}</TableCell>
+                    <TableCell className="font-bold text-slate-600 py-5 italic">Rs. {((portfolio?.byBranch?.[b.id] || 0)).toLocaleString()}</TableCell>
                     <TableCell className="font-black text-emerald-700 py-5">
-                      Rs. {(vaults.find(v => v.branchId === b)?.balance || 0).toLocaleString()}
+                      Rs. {(vaults.find(v => v.branchId === b.id)?.balance || 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right pr-10 py-5">
                       <span className={`inline-flex items-center px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.15em] ${
-                        eodStatus[b] === 'CLOSED' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200 pulse-status'
+                        eodStatus[b.id] === 'OPEN' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200 pulse-status'
                       }`}>
-                        {eodStatus[b] || 'OPEN'}
+                        {eodStatus[b.id] || 'CLOSED'}
                       </span>
                     </TableCell>
                   </TableRow>

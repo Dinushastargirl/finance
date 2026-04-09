@@ -35,6 +35,7 @@ export default function ClientsPage() {
   const [phone, setPhone] = useState('');
   const [branchId, setBranchId] = useState('');
   const [userId, setUserId] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [editingClient, setEditingClient] = useState<any>(null);
 
   const loadClients = async () => {
@@ -44,9 +45,11 @@ export default function ClientsPage() {
         const user = JSON.parse(storedUser);
         setBranchId(user.branchId || 'HQ');
         setUserId(user.id || '');
+        setUserRole(user.role || 'TELLER');
       }
 
-      const res = await fetch('/api/clients');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const res = await fetch(`/api/clients?branchId=${user?.branchId || ''}&role=${user?.role || ''}`);
       if (res.ok) {
         const data = await res.json();
         setClients(data);
