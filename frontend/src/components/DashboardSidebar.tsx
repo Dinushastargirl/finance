@@ -92,16 +92,28 @@ export default function DashboardSidebar() {
     >
       {/* Branding Section */}
       <div className="h-28 flex items-center px-6 mb-2 relative shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 ring-2 ring-white/10 group-hover:scale-110 transition-transform duration-300 relative overflow-hidden shrink-0">
-             <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent" />
-             <span className="text-white font-black text-xl tracking-tighter relative z-10">RP</span>
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500">
-              <span className="text-white font-black tracking-tighter text-2xl leading-tight">RUPASINGHE</span>
-              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] opacity-90">Management Hub</span>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 ring-2 ring-white/10 group-hover:scale-110 transition-transform duration-300 relative overflow-hidden shrink-0">
+              <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent" />
+              <span className="text-white font-black text-xl tracking-tighter relative z-10">RP</span>
             </div>
+            {!isCollapsed && (
+              <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500">
+                <span className="text-white font-black tracking-tighter text-2xl leading-tight">RUPASINGHE</span>
+                <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em] opacity-90">Management Hub</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Top Toggle Button (Only when open) */}
+          {!isCollapsed && (
+            <button 
+              onClick={() => setIsCollapsed(true)}
+              className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all group animate-in fade-in zoom-in duration-500"
+            >
+              <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+            </button>
           )}
         </div>
       </div>
@@ -182,17 +194,15 @@ export default function DashboardSidebar() {
         )}
 
         <div className="flex flex-col gap-1">
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="flex items-center w-full h-11 px-5 rounded-2xl hover:bg-white/5 text-slate-500 hover:text-white transition-all group"
-          >
-            {isCollapsed ? <ChevronRight className="w-5 h-5 mx-auto" /> : (
-              <>
-                <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                <span className="ml-5 font-bold text-[13px]">Close Sidebar</span>
-              </>
-            )}
-          </button>
+          {/* Bottom Toggle Button (Only when closed) */}
+          {isCollapsed && (
+            <button 
+              onClick={() => setIsCollapsed(false)}
+              className="flex items-center w-full h-11 px-5 rounded-2xl hover:bg-white/5 text-slate-500 hover:text-white transition-all group"
+            >
+              <ChevronRight className="w-5 h-5 mx-auto transition-transform group-hover:scale-110" />
+            </button>
+          )}
           
           <button 
             onClick={handleLogout}
