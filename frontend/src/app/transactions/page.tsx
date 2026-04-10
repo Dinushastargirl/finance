@@ -14,6 +14,8 @@ export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'GLOBAL' | 'LOCAL'>('GLOBAL');
+  const [userProfile, setUserProfile] = useState<{ role: string, branchId: string } | null>(null);
 
   // Transfer State
   const [targetBranchId, setTargetBranchId] = useState('');
@@ -24,13 +26,18 @@ export default function TransactionsPage() {
     try {
       const storedUser = localStorage.getItem('user');
       const user = storedUser ? JSON.parse(storedUser) : null;
+      setUserProfile(user);
+      
       const branchId = user?.branchId;
       const role = user?.role;
 
+      // Force LOCAL mode for non-admins
+      const effectiveViewMode = role === 'ADMIN' ? viewMode : 'LOCAL';
+
       let query = supabase.from('transaction').select('*').order('timestamp', { ascending: false });
       
-      // Multi-tenant isolation (transaction table uses snake_case branch_id)
-      if (role === 'TELLER' && branchId) {
+      // Multi-tenant isolation logic
+      if (effectiveViewMode === 'LOCAL' && branchId) {
         query = query.eq('branch_id', branchId);
       }
 
@@ -48,7 +55,7 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     loadTransactions();
-  }, []);
+  }, [viewMode]);
 
   const handleTransfer = async () => {
     try {
@@ -80,14 +87,48 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Ledger Operations</h1>
-          <p className="text-sm text-slate-500 mt-1">Branch-specific transaction history and transfers.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center glass p-8 rounded-3xl border-white/40 shadow-2xl gap-6">
+        <div className="flex items-center gap-5">
+          <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
+             <ArrowRightLeft className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-1">
+              Transaction <span className="text-gradient">Ledger</span>
+            </h1>
+            <p className="text-sm text-slate-500 font-medium">Branch-specific transaction history and transfers.</p>
+          </div>
         </div>
-        <Button onClick={() => setIsOpen(true)} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold h-10 px-4 w-full md:w-auto shrink-0">
-          <Send className="h-4 w-4" /> Initiate Branch Transfer
-        </Button>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          {/* Visibility Toggle (Admin Only) */}
+          {userProfile?.role === 'ADMIN' && (
+            <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
+              <button 
+                onClick={() => setViewMode('GLOBAL')}
+                className={cn(
+                  "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'GLOBAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
+                )}
+              >
+                Global View
+              </button>
+              <button 
+                onClick={() => setViewMode('LOCAL')}
+                className={cn(
+                  "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'LOCAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
+                )}
+              >
+                Local Branch
+              </button>
+            </div>
+          )}
+
+          <Button onClick={() => setIsOpen(true)} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 rounded-2xl w-full sm:w-auto shadow-xl shadow-slate-900/10">
+            <Send className="h-4 w-4" /> New Transfer
+          </Button>
+        </div>
       </div>
 
       {/* Transfer Dialog */}
@@ -139,44 +180,70 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="border border-slate-200 rounded-lg bg-white shadow-sm overflow-hidden min-h-[400px] flex flex-col">
+      <div className="glass border-white/40 rounded-[2.5rem] shadow-2xl overflow-hidden bg-white/40 flex flex-col min-h-[500px]">
         <Table>
-          <TableHeader className="bg-slate-50">
+          <TableHeader className="bg-slate-50/50">
             <TableRow>
-              <TableHead className="font-bold text-slate-800">TX Ref ID / Hash</TableHead>
-              <TableHead className="font-bold text-slate-800">Direction / Type</TableHead>
-              <TableHead className="font-bold text-slate-800">Date Executed</TableHead>
-              <TableHead className="font-bold text-slate-800 max-w-xs">Audit Notes</TableHead>
-              <TableHead className="text-right font-bold text-slate-800">Capital Value</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">TX ID / HASH</TableHead>
+              {viewMode === 'GLOBAL' && (
+                <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Branch</TableHead>
+              )}
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Type / Direction</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400">Timestamp</TableHead>
+              <TableHead className="px-8 py-5 font-black text-[10px] uppercase tracking-widest text-slate-400 max-w-xs">Audit Reference</TableHead>
+              <TableHead className="px-8 py-5 text-right font-black text-[10px] uppercase tracking-widest text-slate-400">Capital Value</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="divide-y divide-slate-100">
             {loading ? (
-               <TableRow><TableCell colSpan={5} className="h-64 text-center font-bold text-slate-400">Loading ledger state...</TableCell></TableRow>
+               <TableRow><TableCell colSpan={6} className="h-96 text-center font-black text-slate-300 tracking-widest uppercase animate-pulse">Synchronizing Ledger State...</TableCell></TableRow>
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-64 text-center text-slate-400 font-medium">
-                  <div className="flex flex-col items-center justify-center">
-                    <FileText className="h-10 w-10 mb-2 opacity-50" />
-                    Ledger is currently empty for your branch Context.
+                <TableCell colSpan={6} className="h-96 text-center text-slate-400">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
+                      <FileText className="h-10 w-10 text-slate-300" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-black text-slate-800 uppercase tracking-widest text-xs">No transactions found</p>
+                      <p className="text-sm font-medium text-slate-400">The operational ledger is currently empty for this scope.</p>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
                 transactions.map((tx) => (
-                  <TableRow key={tx.id} className="hover:bg-slate-50">
-                    <TableCell className="font-black text-slate-900">{tx.id.substring(0,8).toUpperCase()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {tx.type === 'TRANSFER' ? <ArrowRightLeft className="h-4 w-4 text-orange-500" /> : <div className="h-2 w-2 rounded-full bg-blue-500"></div>}
-                        <span className="font-bold text-slate-700">
-                          {tx.type} {tx.targetBranchId && <span className="text-xs bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded ml-2">{tx.targetBranchId}</span>}
+                  <TableRow key={tx.id} className="group hover:bg-primary/5 transition-all duration-300">
+                    <TableCell className="px-8 py-6 font-black text-slate-900 group-hover:text-primary transition-colors">
+                      {tx.id.substring(0,8).toUpperCase()}
+                    </TableCell>
+                    {viewMode === 'GLOBAL' && (
+                      <TableCell className="px-8 py-6">
+                        <span className="font-black text-[10px] bg-slate-100 text-slate-600 px-3 py-1 rounded-lg tracking-widest uppercase border border-slate-200">
+                          {tx.branch_id || 'HQ'}
+                        </span>
+                      </TableCell>
+                    )}
+                    <TableCell className="px-8 py-6">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "h-2 w-2 rounded-full",
+                          tx.type === 'TRANSFER' ? "bg-orange-500 shadow-sm shadow-orange-500/50" : "bg-blue-500 shadow-sm shadow-blue-500/50"
+                        )} />
+                        <span className="font-black text-slate-700 text-xs uppercase tracking-tight">
+                          {tx.type}
+                          {tx.targetBranchId && <span className="text-[9px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full ml-2 font-black">TO: {tx.targetBranchId}</span>}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-600 font-medium">{new Date(tx.timestamp).toLocaleString()}</TableCell>
-                    <TableCell className="text-slate-600 font-medium max-w-xs truncate">{tx.description}</TableCell>
-                    <TableCell className={`text-right font-black ${tx.type === 'TRANSFER' ? 'text-rose-600' : 'text-slate-800'}`}>
+                    <TableCell className="px-8 py-6 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                      {new Date(tx.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </TableCell>
+                    <TableCell className="px-8 py-6 text-slate-600 font-medium max-w-xs truncate text-sm">{tx.description}</TableCell>
+                    <TableCell className={cn(
+                      "px-8 py-6 text-right font-black text-sm tracking-tighter",
+                      tx.type === 'TRANSFER' ? 'text-rose-600' : 'text-slate-900'
+                    )}>
                       {tx.type === 'TRANSFER' ? `- Rs. ${tx.amount.toLocaleString()}` : `Rs. ${tx.amount.toLocaleString()}`}
                     </TableCell>
                   </TableRow>
