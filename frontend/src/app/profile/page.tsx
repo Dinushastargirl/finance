@@ -208,37 +208,11 @@ export default function ProfilePage() {
   }
 
   const initials = `${(user?.first_name || 'U')[0]}${(user?.last_name || '?')[0]}`.toUpperCase();
-  const hasDbData = user?.first_name || user?.last_name;
-  const localStorageUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const showWarning = !hasDbData && localStorageUser?.includes('"firstName"');
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <Toaster position="top-right" richColors />
       
-      {/* ⚠️ DATABASE WARNING BANNER */}
-      {showWarning && (
-        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm">
-          <div className="h-14 w-14 rounded-2xl bg-amber-100 flex items-center justify-center flex-shrink-0 animate-pulse">
-            <AlertCircle className="h-8 w-8 text-amber-600" />
-          </div>
-          <div className="flex-1 text-center md:text-left space-y-1">
-            <h3 className="text-lg font-black text-amber-900 leading-none uppercase tracking-tight">Database Migration Required</h3>
-            <p className="text-sm font-bold text-amber-800/80">
-              Your profile data resets because your Supabase database is missing the required columns.
-              Run the SQL script provided earlier to fix this permanently.
-            </p>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={() => setIsEditMode(true)}
-            className="border-amber-200 text-amber-700 font-black rounded-xl hover:bg-amber-100 h-12 px-6"
-          >
-            Try Syncing Again
-          </Button>
-        </div>
-      )}
-
       {/* Header with Glassmorphism */}
       <div className="relative overflow-hidden rounded-[2.5rem] p-8 border border-white/20 bg-white/40 backdrop-blur-xl shadow-2xl group">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-1000" />
