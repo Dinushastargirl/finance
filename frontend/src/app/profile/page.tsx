@@ -80,11 +80,30 @@ export default function ProfilePage() {
           firstName: data.first_name, 
           lastName: data.last_name 
         }));
+      } else {
+        // If row doesn't exist yet, just use legacy localStorage data for UI
+        setUser(parsedUser);
+        setFormData({
+          first_name: parsedUser.firstName || parsedUser.first_name || '',
+          last_name: parsedUser.lastName || parsedUser.last_name || '',
+          phone: parsedUser.phone || '',
+          email: parsedUser.email || ''
+        });
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
-      // Don't toast error on fetch if it's just a schema mismatch, 
-      // the banner will explain it better.
+      // Fallback to localStorage if fetch fails (e.g. 406 not found)
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setFormData({
+          first_name: parsedUser.firstName || parsedUser.first_name || '',
+          last_name: parsedUser.lastName || parsedUser.last_name || '',
+          phone: parsedUser.phone || '',
+          email: parsedUser.email || ''
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -124,11 +143,14 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // 3. Update profiles table
+      // 3. Upsert into profiles table
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+        .upsert({ 
+          id: user.id,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        });
 
       if (updateError) throw updateError;
 
@@ -159,12 +181,13 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           first_name: formData.first_name,
           last_name: formData.last_name,
-          phone: formData.phone
-        })
-        .eq('id', user.id);
+          phone: formData.phone,
+          updated_at: new Date().toISOString()
+        });
 
       if (error) throw error;
 
