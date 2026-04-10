@@ -73,9 +73,13 @@ export default function ProfilePage() {
           phone: data.phone || '',
           email: data.email || ''
         });
-        
-        // Sync back to localStorage to keep things updated
-        localStorage.setItem('user', JSON.stringify({ ...parsedUser, ...data }));
+        // Sync back to localStorage with both snake_case (new) and camelCase (legacy) keys
+        localStorage.setItem('user', JSON.stringify({ 
+          ...parsedUser, 
+          ...data,
+          firstName: data.first_name, 
+          lastName: data.last_name 
+        }));
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
