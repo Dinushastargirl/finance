@@ -409,10 +409,8 @@ export default function ProfilePage() {
             </div>
 
             <div className="pt-6 flex gap-4">
-              <DialogClose asChild>
-                <Button variant="ghost" className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
-                  Cancel
-                </Button>
+              <DialogClose render={<Button variant="ghost" className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" />}>
+                Cancel
               </DialogClose>
               <Button 
                 onClick={handleSaveProfile}
