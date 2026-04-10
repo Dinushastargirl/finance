@@ -91,8 +91,14 @@ export default function DashboardSidebar() {
       )}
     >
       {/* Branding Section */}
-      <div className="h-28 flex items-center px-6 mb-2 relative shrink-0">
-        <div className="flex items-center justify-between w-full">
+      <div className={cn(
+        "h-28 flex items-center mb-2 relative shrink-0 transition-all duration-500",
+        isCollapsed ? "justify-center" : "px-6"
+      )}>
+        <div className={cn(
+          "flex items-center w-full",
+          isCollapsed ? "justify-center" : "justify-between"
+        )}>
           <div className="flex items-center gap-4">
             <div className="h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 ring-2 ring-white/10 group-hover:scale-110 transition-transform duration-300 relative overflow-hidden shrink-0">
               <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent" />
@@ -121,9 +127,9 @@ export default function DashboardSidebar() {
       {/* Navigation Groups */}
       <div className="flex-1 px-4 space-y-10 overflow-y-auto pt-6 scrollbar-hide pb-10">
         {navGroups.map((group) => (
-          <div key={group.label} className="space-y-4">
+          <div key={group.label} className="space-y-4 text-center">
             {!isCollapsed && (
-              <p className="px-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4">
+              <p className="px-5 text-left text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4">
                 {group.label}
               </p>
             )}
@@ -139,7 +145,8 @@ export default function DashboardSidebar() {
                     key={item.name} 
                     href={item.href}
                     className={cn(
-                      "group flex items-center h-12 px-5 rounded-2xl transition-all duration-300 relative overflow-hidden",
+                      "group flex items-center h-12 rounded-2xl transition-all duration-300 relative overflow-hidden",
+                      isCollapsed ? "justify-center" : "px-5",
                       isActive 
                         ? "bg-primary text-white shadow-xl shadow-primary/20" 
                         : "hover:bg-white/5 hover:text-white"
@@ -147,10 +154,11 @@ export default function DashboardSidebar() {
                   >
                     <Icon className={cn(
                       "w-5 h-5 shrink-0 transition-all duration-300 group-hover:scale-110",
-                      isActive ? "text-white" : "text-slate-500 group-hover:text-primary"
+                      isActive ? "text-white" : "text-slate-500 group-hover:text-primary",
+                      !isCollapsed && "mr-5"
                     )} />
                     {!isCollapsed && (
-                      <span className="ml-5 font-bold text-[13px] tracking-tight">{item.name}</span>
+                      <span className="font-bold text-[13px] tracking-tight">{item.name}</span>
                     )}
                     {isActive && !isCollapsed && (
                       <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -198,18 +206,25 @@ export default function DashboardSidebar() {
           {isCollapsed && (
             <button 
               onClick={() => setIsCollapsed(false)}
-              className="flex items-center w-full h-11 px-5 rounded-2xl hover:bg-white/5 text-slate-500 hover:text-white transition-all group"
+              className="flex items-center justify-center w-full h-11 rounded-2xl hover:bg-white/5 text-slate-500 hover:text-white transition-all group"
             >
-              <ChevronRight className="w-5 h-5 mx-auto transition-transform group-hover:scale-110" />
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:scale-110" />
             </button>
           )}
           
           <button 
             onClick={handleLogout}
-            className="flex items-center w-full h-11 px-5 rounded-2xl hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-all group"
+            className={cn(
+              "flex items-center w-full h-11 rounded-2xl transition-all group",
+              isCollapsed ? "justify-center" : "px-5",
+              "hover:bg-rose-500/10 text-slate-500 hover:text-rose-400"
+            )}
           >
-            <LogOut className="w-5 h-5 shrink-0 group-hover:rotate-12 transition-transform" />
-            {!isCollapsed && <span className="ml-5 font-bold text-[13px]">Logout</span>}
+            <LogOut className={cn(
+              "w-5 h-5 shrink-0 transition-transform group-hover:rotate-12",
+              !isCollapsed && "mr-5"
+            )} />
+            {!isCollapsed && <span className="font-bold text-[13px]">Logout</span>}
           </button>
         </div>
       </div>
