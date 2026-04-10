@@ -63,10 +63,18 @@ export default function DashboardSidebar() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const syncUser = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    };
+    
+    syncUser();
+    
+    // Listen for storage changes from other components (like ProfilePage)
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
   }, []);
 
   const handleLogout = () => {
@@ -146,16 +154,31 @@ export default function DashboardSidebar() {
       {/* Profile & Footer */}
       <div className="p-4 border-t border-white/5 space-y-3 bg-black/20 shrink-0">
         {!isCollapsed && user && (
-          <div className="flex items-center gap-4 px-5 py-4 rounded-3xl bg-white/5 border border-white/5 group transition-all">
-            <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/10 relative">
-              <UserCircle className="w-7 h-7 text-slate-400" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950" />
+          <Link 
+            href="/profile"
+            className="flex items-center gap-4 px-5 py-4 rounded-3xl bg-white/5 border border-white/5 group transition-all hover:bg-white/10 hover:border-white/20 active:scale-[0.98] cursor-pointer"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/10 relative overflow-hidden">
+              {user.avatar_url || user.avatarUrl ? (
+                <img 
+                  src={user.avatar_url || user.avatarUrl} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <UserCircle className="w-7 h-7 text-slate-400 group-hover:text-primary transition-colors" />
+              )}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950 shadow-sm shadow-emerald-500/50" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-white font-black text-sm truncate tracking-tight">{user.firstName || 'User'}</span>
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate">{user.role || 'Staff'}</span>
+              <span className="text-white font-black text-sm truncate tracking-tight group-hover:text-primary transition-colors">
+                {user.firstName || user.first_name || 'User'}
+              </span>
+              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate">
+                {user.role || 'Staff'}
+              </span>
             </div>
-          </div>
+          </Link>
         )}
 
         <div className="flex flex-col gap-1">
