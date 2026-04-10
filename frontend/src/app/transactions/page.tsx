@@ -7,15 +7,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Send, FileText, ArrowRightLeft } from "lucide-react"
+import { Search, Send, FileText, ArrowRightLeft, Building2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+
+const BRANCHES = [
+  { id: 'BRL', name: 'Borella' },
+  { id: 'KOT', name: 'Kotikawatta' },
+  { id: 'MRG', name: 'Maharagama' },
+  { id: 'WAT', name: 'Wattala' },
+  { id: 'KIR', name: 'Kiribathgoda' },
+  { id: 'DMT', name: 'Dematagoda' },
+  { id: 'KDW', name: 'Kadawatha' },
+  { id: 'DHW', name: 'Dehiwala' },
+  { id: 'PND', name: 'Panadura' },
+  { id: 'KTW', name: 'Kottawa' },
+  { id: 'HMG', name: 'Homagama' },
+  { id: 'HQ',  name: 'Head Office' },
+];
 
 export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'GLOBAL' | 'LOCAL'>('GLOBAL');
+  const [filterBranchId, setFilterBranchId] = useState<string>('ALL');
   const [userProfile, setUserProfile] = useState<{ role: string, branchId: string } | null>(null);
 
   // Transfer State
@@ -40,6 +56,9 @@ export default function TransactionsPage() {
       // Multi-tenant isolation logic
       if (effectiveViewMode === 'LOCAL' && branchId) {
         query = query.eq('branch_id', branchId);
+      } else if (effectiveViewMode === 'GLOBAL' && filterBranchId !== 'ALL') {
+        // Admin branch filter in global view
+        query = query.eq('branch_id', filterBranchId);
       }
 
       const { data, error } = await query;
@@ -56,7 +75,7 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     loadTransactions();
-  }, [viewMode]);
+  }, [viewMode, filterBranchId]);
 
   const handleTransfer = async () => {
     try {
@@ -104,26 +123,48 @@ export default function TransactionsPage() {
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           {/* Visibility Toggle (Admin Only) */}
           {userProfile?.role === 'ADMIN' && (
-            <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
-              <button 
-                onClick={() => setViewMode('GLOBAL')}
-                className={cn(
-                  "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                  viewMode === 'GLOBAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
-                )}
-              >
-                Global View
-              </button>
-              <button 
-                onClick={() => setViewMode('LOCAL')}
-                className={cn(
-                  "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                  viewMode === 'LOCAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
-                )}
-              >
-                Local Branch
-              </button>
-            </div>
+            <>
+              <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
+                <button 
+                  onClick={() => setViewMode('GLOBAL')}
+                  className={cn(
+                    "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'GLOBAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Global View
+                </button>
+                <button 
+                  onClick={() => setViewMode('LOCAL')}
+                  className={cn(
+                    "flex-1 sm:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'LOCAL' ? "bg-white text-primary shadow-lg shadow-slate-200" : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Local Branch
+                </button>
+              </div>
+
+              {/* Branch Filter (Only in Global Mode) */}
+              {viewMode === 'GLOBAL' && (
+                <Select value={filterBranchId} onValueChange={setFilterBranchId}>
+                  <SelectTrigger className="h-12 w-full sm:w-[200px] rounded-2xl border-slate-200 font-bold text-[10px] uppercase tracking-widest transition-all glass">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-primary" />
+                      <SelectValue placeholder="All Branches" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
+                    <SelectItem value="ALL" className="font-black text-[10px] uppercase tracking-widest">All Branches</SelectItem>
+                    {BRANCHES.map(b => (
+                      <SelectItem key={b.id} value={b.id} className="font-bold text-[10px] uppercase tracking-widest">
+                        {b.name} ({b.id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
           )}
 
           <Button onClick={() => setIsOpen(true)} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 rounded-2xl w-full sm:w-auto shadow-xl shadow-slate-900/10">
@@ -134,30 +175,37 @@ export default function TransactionsPage() {
 
       {/* Transfer Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-blue-600"/> Branch Cash Transfer</DialogTitle>
-            <DialogDescription>
-              Transfer working capital between operational branches.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label className="font-medium text-slate-700">Target Destination Branch</Label>
-              <Select onValueChange={(val) => val && setTargetBranchId(val)} value={targetBranchId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select receiver branch..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="KOT">Kotikawatta (KOT)</SelectItem>
-                  <SelectItem value="MRG">Maharagama (MRG)</SelectItem>
-                  <SelectItem value="BRL">Borella (BRL)</SelectItem>
-                  <SelectItem value="WAT">Wattala (WAT)</SelectItem>
-                  <SelectItem value="KIR">Kiribathgoda (KIR)</SelectItem>
-                  <SelectItem value="HQ">Head Office (HQ)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <DialogContent className="sm:max-w-[425px] glass border-white/40 p-0 overflow-hidden rounded-[2rem]">
+          <div className="h-2 bg-primary" />
+          <div className="p-8 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-3 text-slate-900">
+                <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                  <Send className="h-5 w-5 text-primary"/>
+                </div>
+                Branch Capital Transfer
+              </DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">
+                Move working capital between operational branches for vault balancing.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-5">
+              <div className="grid gap-2">
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Target Destination Branch</Label>
+                <Select onValueChange={(val) => val && setTargetBranchId(val)} value={targetBranchId}>
+                  <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
+                    <SelectValue placeholder="Select receiver branch..." />
+                  </SelectTrigger>
+                  <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
+                    {BRANCHES.map(b => (
+                      <SelectItem key={b.id} value={b.id} className="font-bold">
+                        {b.name} ({b.id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             <div className="grid gap-2">
               <Label className="font-medium text-slate-700">Transfer Capital Amount (Rs.)</Label>
               <Input value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="500000" className="border-slate-300" />
