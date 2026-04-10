@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { 
   UserCircle, 
@@ -57,7 +57,13 @@ export default function ProfilePage() {
         .eq('id', parsedUser.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If the table doesn't have the columns yet, it will error here
+        if (error.message.includes('column')) {
+          console.warn('Database schema mismatch: missing profile columns');
+        }
+        throw error;
+      };
 
       if (data) {
         setUser(data);
@@ -73,7 +79,8 @@ export default function ProfilePage() {
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile data');
+      // Don't toast error on fetch if it's just a schema mismatch, 
+      // the banner will explain it better.
     } finally {
       setLoading(false);
     }
@@ -130,11 +137,12 @@ export default function ProfilePage() {
 
       toast.success('Profile picture updated successfully!', { id: toastId });
       
-      // Force sidebar refresh (optional but recommended)
+      // Force sidebar refresh
       window.dispatchEvent(new Event('storage'));
     } catch (error: any) {
       console.error('Avatar upload error:', error);
-      toast.error(error.message || 'Failed to upload photo', { id: toastId });
+      const msg = error.message?.includes('column') ? 'Database Error: missing avatar_url column.' : 'Failed to upload photo';
+      toast.error(msg, { id: toastId });
     } finally {
       setUpdating(false);
     }
@@ -156,22 +164,22 @@ export default function ProfilePage() {
 
       if (error) throw error;
 
-      setUser({ 
+      const newUser = { 
         ...user, 
         first_name: formData.first_name, 
         last_name: formData.last_name, 
         phone: formData.phone 
-      });
+      };
+      
+      setUser(newUser);
 
       // Update localStorage
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       localStorage.setItem('user', JSON.stringify({ 
         ...storedUser, 
-        firstName: formData.first_name, // keep compatibility with existing code
-        lastName: formData.last_name,
-        firstName_db: formData.first_name,
-        lastName_db: formData.last_name,
-        phone: formData.phone 
+        ...newUser,
+        firstName: formData.first_name, // fallback for legacy code
+        lastName: formData.last_name
       }));
 
       toast.success('Profile updated successfully!', { id: toastId });
@@ -181,7 +189,10 @@ export default function ProfilePage() {
       window.dispatchEvent(new Event('storage'));
     } catch (error: any) {
       console.error('Profile update error:', error);
-      toast.error('Failed to save profile changes', { id: toastId });
+      const errorMsg = error.message?.includes('column') 
+        ? 'Database Error: Missing columns. Please run the SQL migration.' 
+        : 'Failed to save profile changes';
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setUpdating(false);
     }
@@ -197,227 +208,281 @@ export default function ProfilePage() {
   }
 
   const initials = `${(user?.first_name || 'U')[0]}${(user?.last_name || '?')[0]}`.toUpperCase();
+  const hasDbData = user?.first_name || user?.last_name;
+  const localStorageUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const showWarning = !hasDbData && localStorageUser?.includes('"firstName"');
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <Toaster position="top-right" richColors />
       
+      {/* ⚠️ DATABASE WARNING BANNER */}
+      {showWarning && (
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm">
+          <div className="h-14 w-14 rounded-2xl bg-amber-100 flex items-center justify-center flex-shrink-0 animate-pulse">
+            <AlertCircle className="h-8 w-8 text-amber-600" />
+          </div>
+          <div className="flex-1 text-center md:text-left space-y-1">
+            <h3 className="text-lg font-black text-amber-900 leading-none uppercase tracking-tight">Database Migration Required</h3>
+            <p className="text-sm font-bold text-amber-800/80">
+              Your profile data resets because your Supabase database is missing the required columns.
+              Run the SQL script provided earlier to fix this permanently.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsEditMode(true)}
+            className="border-amber-200 text-amber-700 font-black rounded-xl hover:bg-amber-100 h-12 px-6"
+          >
+            Try Syncing Again
+          </Button>
+        </div>
+      )}
+
       {/* Header with Glassmorphism */}
-      <div className="relative overflow-hidden rounded-3xl p-8 border border-white/20 bg-white/40 backdrop-blur-xl shadow-2xl overflow-hidden group">
+      <div className="relative overflow-hidden rounded-[2.5rem] p-8 border border-white/20 bg-white/40 backdrop-blur-xl shadow-2xl group">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-1000" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-1000" />
         
-        <div className="relative flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+        <div className="relative flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
             {/* Avatar Section */}
             <div className="relative">
-              <div className="h-32 w-32 rounded-[2.5rem] bg-slate-900 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center transition-transform hover:scale-105 duration-500 ring-4 ring-primary/5">
+              <div className="h-36 w-36 rounded-[3rem] bg-slate-900 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center transition-transform hover:scale-105 duration-500 ring-4 ring-primary/5">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-4xl font-black text-white tracking-tighter">{initials}</span>
-                )}
-                {updating && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                    <Loader2 className="h-8 w-8 text-white animate-spin" />
-                  </div>
+                  <span className="text-5xl font-black text-white tracking-tighter">{initials}</span>
                 )}
               </div>
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={updating}
-                className="absolute -bottom-2 -right-2 bg-primary hover:bg-primary/90 text-white rounded-2xl p-3 shadow-xl shadow-primary/40 transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
-              >
-                <Camera className="h-5 w-5" />
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">
-                  {user?.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Complete Your Profile'}
+                <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none">
+                  {user?.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Your Profile'}
                 </h1>
                 <Badge className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-0",
+                  "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-0",
                   user?.role === 'ADMIN' ? "bg-purple-100 text-purple-700 shadow-sm" : "bg-blue-100 text-blue-700 shadow-sm"
                 )}>
-                  {user?.role || 'Staff'}
+                  {user?.role || 'Staff Member'}
                 </Badge>
               </div>
               
-              <div className="flex flex-col gap-1 text-slate-500 font-bold text-sm">
+              <div className="flex flex-col gap-2 text-slate-500 font-bold text-sm">
                 <p className="flex items-center gap-2 justify-center md:justify-start">
                   <Mail className="h-4 w-4 text-primary" />
                   {user?.email}
                 </p>
-                <p className="flex items-center gap-2 justify-center md:justify-start">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  {user?.branch_name || 'All Branches'} ({user?.branch_id || 'HQ'})
-                </p>
+                <div className="flex items-center gap-4 justify-center md:justify-start">
+                  <p className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    {user?.branch_name || 'Main Branch'}
+                  </p>
+                  <p className="px-2 py-0.5 bg-slate-100 rounded text-[10px] text-slate-400">ID: {user?.id?.slice(0, 8)}...</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            {!isEditMode ? (
-              <Button 
-                onClick={() => setIsEditMode(true)}
-                className="rounded-2xl px-6 h-12 gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black shadow-xl transition-all active:scale-95"
-              >
-                <Pencil className="h-4 w-4" /> Edit Profile
-              </Button>
-            ) : (
-              <>
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsEditMode(false)}
-                  className="rounded-2xl px-6 h-12 font-black border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleSaveProfile}
-                  disabled={updating}
-                  className="rounded-2xl px-8 h-12 gap-2 bg-primary hover:bg-primary/90 text-white font-black shadow-xl shadow-primary/20 transition-all active:scale-95"
-                >
-                  {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  Save Changes
-                </Button>
-              </>
-            )}
-          </div>
+          <Button 
+            onClick={() => setIsEditMode(true)}
+            className="rounded-[1.5rem] px-8 h-14 gap-3 bg-slate-900 hover:bg-slate-800 text-white font-black shadow-2xl transition-all active:scale-95 group"
+          >
+            <Pencil className="h-5 w-5 group-hover:rotate-12 transition-transform" /> 
+            Edit Details
+          </Button>
         </div>
       </div>
 
-      {/* Main Content Grid */}
+      {/* Info Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column: Details */}
         <div className="lg:col-span-2 space-y-8">
-          <Card className="rounded-3xl border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
-              <CardTitle className="flex items-center gap-2 text-xl font-black tracking-tight uppercase text-slate-900">
-                <User className="h-5 w-5 text-primary" /> Personal Information
+          <Card className="rounded-[2rem] border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-10">
+              <CardTitle className="flex items-center gap-3 text-xl font-black tracking-tight uppercase text-slate-900">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
+                Personal Profile
               </CardTitle>
-              <CardDescription className="font-bold text-slate-400">Keep your contact details up to date for better communication.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <Label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">First Name</Label>
-                  <div className="relative group">
-                    <Input 
-                      disabled={!isEditMode || updating}
-                      value={formData.first_name}
-                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                      className="rounded-2xl h-14 bg-slate-50 border-slate-100 font-bold focus:bg-white transition-all group-hover:border-primary/30"
-                      placeholder="Enter your first name"
-                    />
-                    <User className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-hover:text-primary transition-colors" />
-                  </div>
+            <CardContent className="p-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="space-y-1.5 group">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">First Name</p>
+                  <p className="text-xl font-extrabold text-slate-700">{user?.first_name || 'Not Set'}</p>
                 </div>
-                <div className="space-y-3">
-                  <Label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Last Name</Label>
-                  <div className="relative group">
-                    <Input 
-                      disabled={!isEditMode || updating}
-                      value={formData.last_name}
-                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                      className="rounded-2xl h-14 bg-slate-50 border-slate-100 font-bold focus:bg-white transition-all group-hover:border-primary/30"
-                      placeholder="Enter your last name"
-                    />
-                    <User className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-hover:text-primary transition-colors" />
-                  </div>
+                <div className="space-y-1.5 group">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">Last Name</p>
+                  <p className="text-xl font-extrabold text-slate-700">{user?.last_name || 'Not Set'}</p>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <Label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Phone Number</Label>
-                  <div className="relative group">
-                    <Input 
-                      disabled={!isEditMode || updating}
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="rounded-2xl h-14 bg-slate-50 border-slate-100 font-bold focus:bg-white transition-all group-hover:border-primary/30"
-                      placeholder="07X XXX XXXX"
-                    />
-                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-hover:text-primary transition-colors" />
-                  </div>
+                <div className="space-y-1.5 group">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">Phone Number</p>
+                  <p className="text-xl font-extrabold text-slate-700">{user?.phone || 'Not Set'}</p>
                 </div>
-                <div className="space-y-3">
-                  <Label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email (Read-only)</Label>
-                  <div className="relative group opacity-60 cursor-not-allowed">
-                    <Input 
-                      disabled
-                      value={formData.email}
-                      className="rounded-2xl h-14 bg-slate-50 border-slate-100 font-bold"
-                    />
-                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                  </div>
+                <div className="space-y-1.5 opacity-50">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Account Email</p>
+                  <p className="text-xl font-extrabold text-slate-700">{user?.email}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column: Security & Stats */}
         <div className="space-y-8">
-          <Card className="rounded-3xl border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
-            <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-6">
-              <div className="h-20 w-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center animate-bounce duration-[3000ms]">
-                <AlertCircle className="h-10 w-10 text-primary" />
+          <Card className="rounded-[2rem] border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white group cursor-pointer" onClick={() => setIsSupportOpen(true)}>
+            <CardContent className="p-10 flex flex-col items-center justify-center text-center gap-8">
+              <div className="relative">
+                <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center animate-bounce duration-[4000ms]">
+                  <AlertCircle className="h-12 w-12 text-primary" />
+                </div>
+                <div className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 rounded-full border-4 border-white animate-pulse" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-black tracking-tighter text-slate-900 uppercase">Need Help?</h3>
-                <p className="text-slate-400 font-bold text-sm px-4">
-                  For account issues, branch permissions, or technical support, contact our IT department.
+                <h3 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Need Help?</h3>
+                <p className="text-slate-400 font-bold text-sm px-4 leading-relaxed">
+                  Branch issues or technical trouble? Our IT team is ready to help you.
                 </p>
               </div>
               <Button 
-                onClick={() => setIsSupportOpen(true)}
                 variant="outline" 
-                className="w-full rounded-2xl h-14 font-black border-primary/20 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 group shadow-lg shadow-primary/5"
+                className="w-full rounded-[1.25rem] h-16 font-black border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 group shadow-lg shadow-primary/5 text-lg"
               >
-                Contact IT Support
-                <Phone className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+                Contact Support
+                <Phone className="ml-3 h-5 w-5 group-hover:rotate-12 transition-transform" />
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* ── Support Information Modal ── */}
+      {/* ── EDIT PROFILE MODAL ── */}
+      <Dialog open={isEditMode} onOpenChange={setIsEditMode}>
+        <DialogContent className="sm:max-w-lg rounded-[3rem] p-0 overflow-hidden border-0 shadow-2xl bg-white/95 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
+          <div className="bg-primary h-2 w-full" />
+          
+          <div className="p-10 space-y-10">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Edit Profile</h1>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Personal Identification</p>
+              </div>
+              <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm">
+                <Pencil className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+
+            {/* Avatar centered in modal */}
+            <div className="flex flex-col items-center gap-4 py-2">
+              <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
+                <div className="h-32 w-32 rounded-[2.5rem] bg-slate-900 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-all duration-500">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-5xl font-black text-white">{initials}</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                    <Camera className="h-10 w-10 text-white scale-90 group-hover:scale-100 transition-transform" />
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-2xl p-3 shadow-xl group-hover:scale-110 transition-all">
+                  <Camera className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Change Profile Photo</p>
+                <p className="text-[9px] font-bold text-slate-300 mt-0.5 italic">Storage managed by Supabase</p>
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">First Name</Label>
+                  <Input 
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    className="h-14 px-5 rounded-[1.25rem] bg-slate-50 border-slate-100 font-bold focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all text-lg"
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Last Name</Label>
+                  <Input 
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    className="h-14 px-5 rounded-[1.25rem] bg-slate-50 border-slate-100 font-bold focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all text-lg"
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</Label>
+                <div className="relative">
+                  <Input 
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="h-14 px-5 rounded-[1.25rem] bg-slate-50 border-slate-100 font-bold focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all text-lg pl-12"
+                    placeholder="077 000 0000"
+                  />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 flex gap-4">
+              <DialogClose asChild>
+                <Button variant="ghost" className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button 
+                onClick={handleSaveProfile}
+                disabled={updating}
+                className="flex-[2] h-16 rounded-[1.25rem] bg-primary hover:bg-primary/90 text-white font-black shadow-2xl shadow-primary/20 transition-all active:scale-95 text-lg"
+              >
+                {updating ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <CheckCircle2 className="h-6 w-6 mr-3 border-2 border-white/20 rounded-full" />}
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── SUPPORT MODAL ── */}
       <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
-        <DialogContent className="sm:max-w-md rounded-[2rem] border-0 bg-white/80 backdrop-blur-2xl shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-md rounded-[3rem] border-0 bg-white/90 backdrop-blur-3xl shadow-2xl p-0 overflow-hidden">
           <div className="bg-primary h-2" />
-          <div className="p-10 text-center space-y-8">
+          <div className="p-12 text-center space-y-10">
             <div className="flex justify-center">
-              <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center animate-pulse">
-                <Phone className="h-10 w-10 text-primary" />
+              <div className="h-28 w-28 rounded-[2.5rem] bg-primary/10 flex items-center justify-center animate-pulse">
+                <Phone className="h-12 w-12 text-primary" />
               </div>
             </div>
             
-            <div className="space-y-3">
-              <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">IT Support Center</h2>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Vork.Global</h1>
+            <div className="space-y-2">
+              <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.4em]">Official Support</h2>
+              <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none">Vork.Global</h1>
             </div>
 
-            <div className="p-8 rounded-[1.5rem] bg-slate-50 border border-slate-100 flex flex-col items-center gap-2 group transition-all hover:bg-slate-100/50">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Direct Support Line</p>
-              <p className="text-4xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">0775088850</p>
+            <div className="p-10 rounded-[2rem] bg-slate-900 border border-slate-800 flex flex-col items-center gap-3 group transition-all hover:scale-105 duration-500 shadow-2xl">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Contact Hotline</p>
+              <p className="text-5xl font-black text-white tracking-tighter group-hover:text-primary transition-colors">0775088850</p>
             </div>
 
-            <p className="text-sm font-bold text-slate-400 px-4">
-              Our technical team is available 24/7 to assist with your account and branch operations.
+            <p className="text-base font-bold text-slate-400 px-6 leading-relaxed">
+              Our technical engineering team is available 24/7 to ensure seamless branch operations.
             </p>
 
             <Button 
               onClick={() => setIsSupportOpen(false)}
-              className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95"
+              className="w-full h-16 rounded-[1.5rem] bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-sm uppercase tracking-widest transition-all active:scale-95"
             >
-              Close Message
+              Close Hub
             </Button>
           </div>
         </DialogContent>
