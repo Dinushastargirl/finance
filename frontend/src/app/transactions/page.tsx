@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Send, FileText, ArrowRightLeft } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 
 export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
