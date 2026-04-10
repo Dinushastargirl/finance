@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { 
   UserCircle, 
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -374,15 +376,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               <Button 
-                onClick={() => {
-                  toast.info(
-                    <div className="flex flex-col gap-1">
-                      <p className="font-black text-slate-900">Vork.Global Support</p>
-                      <p className="text-primary font-bold text-lg">0775088850</p>
-                    </div>,
-                    { duration: 10000 }
-                  );
-                }}
+                onClick={() => setIsSupportOpen(true)}
                 variant="outline" 
                 className="w-full rounded-2xl h-14 font-black border-primary/20 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 group shadow-lg shadow-primary/5"
               >
@@ -393,6 +387,41 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {/* ── Support Information Modal ── */}
+      <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
+        <DialogContent className="sm:max-w-md rounded-[2rem] border-0 bg-white/80 backdrop-blur-2xl shadow-2xl p-0 overflow-hidden">
+          <div className="bg-primary h-2" />
+          <div className="p-10 text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center animate-pulse">
+                <Phone className="h-10 w-10 text-primary" />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">IT Support Center</h2>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Vork.Global</h1>
+            </div>
+
+            <div className="p-8 rounded-[1.5rem] bg-slate-50 border border-slate-100 flex flex-col items-center gap-2 group transition-all hover:bg-slate-100/50">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Direct Support Line</p>
+              <p className="text-4xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">0775088850</p>
+            </div>
+
+            <p className="text-sm font-bold text-slate-400 px-4">
+              Our technical team is available 24/7 to assist with your account and branch operations.
+            </p>
+
+            <Button 
+              onClick={() => setIsSupportOpen(false)}
+              className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95"
+            >
+              Close Message
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
