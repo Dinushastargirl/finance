@@ -9,13 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   UserCircle, 
   Pencil, 
-  Lock, 
   Camera, 
   Building2, 
   Mail, 
   Phone, 
   User, 
-  ShieldCheck, 
   Loader2, 
   CheckCircle2,
   AlertCircle
@@ -364,49 +362,33 @@ export default function ProfilePage() {
 
         {/* Right Column: Security & Stats */}
         <div className="space-y-8">
-          <Card className="rounded-3xl border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden bg-slate-900 text-white">
-            <CardHeader className="p-8 pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl font-black tracking-tight uppercase">
-                <ShieldCheck className="h-5 w-5 text-primary" /> Security 
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Two-Factor Auth</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold">Not Enabled</span>
-                  <Badge variant="outline" className="text-white/40 border-white/10">Disabled</Badge>
-                </div>
+          <Card className="rounded-3xl border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
+            <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-6">
+              <div className="h-20 w-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center animate-bounce duration-[3000ms]">
+                <AlertCircle className="h-10 w-10 text-primary" />
               </div>
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Password Strength</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold">Strong</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3].map(i => <div key={i} className="h-1.5 w-4 rounded-full bg-emerald-500" />)}
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black tracking-tighter text-slate-900 uppercase">Need Help?</h3>
+                <p className="text-slate-400 font-bold text-sm px-4">
+                  For account issues, branch permissions, or technical support, contact our IT department.
+                </p>
               </div>
-              
               <Button 
+                onClick={() => {
+                  toast.info(
+                    <div className="flex flex-col gap-1">
+                      <p className="font-black text-slate-900">Vork.Global Support</p>
+                      <p className="text-primary font-bold text-lg">0775088850</p>
+                    </div>,
+                    { duration: 10000 }
+                  );
+                }}
                 variant="outline" 
-                className="w-full rounded-2xl h-12 font-black border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all active:scale-95"
+                className="w-full rounded-2xl h-14 font-black border-primary/20 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 group shadow-lg shadow-primary/5"
               >
-                <Lock className="h-4 w-4 mr-2" /> Change Password
+                Contact IT Support
+                <Phone className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-            <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <AlertCircle className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black tracking-tight text-slate-900">Need Help?</h3>
-                <p className="text-slate-400 font-bold text-sm">Contact support for any account issues or branch-level permissions.</p>
-              </div>
-              <Button variant="link" className="text-primary font-black uppercase text-xs tracking-widest">Contact IT Support</Button>
             </CardContent>
           </Card>
         </div>
