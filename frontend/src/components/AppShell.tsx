@@ -25,7 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         "flex-1 transition-all duration-500 min-h-screen flex flex-col",
         isCollapsed ? "ml-24" : "ml-72"
       )}>
-        <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto w-full">
+        <div className="flex-1 p-4 md:px-6 md:py-10 max-w-7xl w-full">
           {children}
         </div>
       </main>
