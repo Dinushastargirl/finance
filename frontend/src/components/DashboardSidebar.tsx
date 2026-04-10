@@ -56,10 +56,9 @@ const navGroups = [
   }
 ];
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean, setIsCollapsed: (v: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {

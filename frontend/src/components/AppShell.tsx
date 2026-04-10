@@ -1,11 +1,11 @@
-'use client';
-
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import DashboardSidebar from './DashboardSidebar';
 import { cn } from '@/lib/utils';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const isLoginPage = pathname === '/login';
 
   if (isLoginPage) {
@@ -18,8 +18,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen relative w-full overflow-x-hidden">
-      <DashboardSidebar />
-      <main className="flex-1 transition-all duration-500 ml-24 lg:ml-72 min-h-screen flex flex-col">
+      <DashboardSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <main className={cn(
+        "flex-1 transition-all duration-500 min-h-screen flex flex-col",
+        isCollapsed ? "ml-24" : "ml-72"
+      )}>
         <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto w-full">
           {children}
         </div>
