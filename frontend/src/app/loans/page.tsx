@@ -15,25 +15,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 
-const BRANCHES = [
-  { id: 'ALL', name: 'All Branches' },
-  { id: 'BRL', name: 'Borella' },
-  { id: 'DHW', name: 'Dehiwala' },
-  { id: 'DMT', name: 'Dematagoda' },
-  { id: 'HMG', name: 'Homagama' },
-  { id: 'KDW', name: 'Kadawatha' },
-  { id: 'KIR', name: 'Kiribathgoda' },
-  { id: 'KOT', name: 'Kotikawatta' },
-  { id: 'KTW', name: 'Kottawa' },
-  { id: 'MRG', name: 'Maharagama' },
-  { id: 'PND', name: 'Panadura' },
-  { id: 'WAT', name: 'Wattala' },
-  { id: 'HQ',  name: 'Head Office' },
-];
-
 export default function PawnesPage() {
   const [isOpen, setIsOpen]       = useState(false);
   const [pawns, setPawns]         = useState<any[]>([]);
+  const [branches, setBranches]   = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [isSaving, setIsSaving]   = useState(false);
   const [search, setSearch]       = useState('');
@@ -67,6 +52,16 @@ export default function PawnesPage() {
       return u;
     }
     return null;
+  };
+
+  const loadBranches = async () => {
+    try {
+      const res = await fetch('/api/branches');
+      if (res.ok) {
+        const data = await res.json();
+        setBranches([{ id: 'ALL', name: 'All Branches' }, ...data]);
+      }
+    } catch (e) { console.error('Failed to load branches', e); }
   };
 
   // Build a map of { nationalId -> "First Last", id -> "First Last" } for fast lookups
@@ -114,6 +109,7 @@ export default function PawnesPage() {
     const u = loadUser();
     loadPawns(u);
     loadClients(u);
+    loadBranches();
   }, []);
 
   // Reload when admin changes branch filter
@@ -230,9 +226,9 @@ export default function PawnesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                {BRANCHES.map(b => (
+                {branches.map(b => (
                   <SelectItem key={b.id} value={b.id} className="font-bold text-[11px] uppercase tracking-widest">
-                    {b.name}
+                    {b.name} ({b.id})
                   </SelectItem>
                 ))}
               </SelectContent>

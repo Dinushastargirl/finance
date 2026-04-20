@@ -131,20 +131,19 @@ export default function ExecutiveDashboard() {
   );
 
   const totalVault = vaults.reduce((sum, v) => sum + (v.balance || 0), 0);
-  const branches = [
-    { id: "BRL", name: "Borella" },
-    { id: "DHW", name: "Dehiwala" },
-    { id: "DMT", name: "Dematagoda" },
-    { id: "HMG", name: "Homagama" },
-    { id: "KDW", name: "Kadawatha" },
-    { id: "KIR", name: "Kiribathgoda" },
-    { id: "KOT", name: "Kotikawatta" },
-    { id: "KTW", name: "Kottawa" },
-    { id: "MRG", name: "Maharagama" },
-    { id: "PND", name: "Panadura" },
-    { id: "WAT", name: "Wattala" },
-    { id: "HQ",  name: "Head Office" },
-  ];
+  const [branches, setBranches] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const res = await fetch('/api/branches');
+        if (res.ok) setBranches(await res.json());
+      } catch (e) {
+        console.error('Failed to load branches');
+      }
+    };
+    loadBranches();
+  }, []);
 
   return (
     <div ref={dashboardRef} className="space-y-8 pb-12 animate-in fade-in duration-700">

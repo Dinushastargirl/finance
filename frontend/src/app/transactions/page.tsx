@@ -11,20 +11,7 @@ import { Search, Send, FileText, ArrowRightLeft, Building2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 
-const BRANCHES = [
-  { id: 'BRL', name: 'Borella' },
-  { id: 'DHW', name: 'Dehiwala' },
-  { id: 'DMT', name: 'Dematagoda' },
-  { id: 'HMG', name: 'Homagama' },
-  { id: 'KDW', name: 'Kadawatha' },
-  { id: 'KIR', name: 'Kiribathgoda' },
-  { id: 'KOT', name: 'Kotikawatta' },
-  { id: 'KTW', name: 'Kottawa' },
-  { id: 'MRG', name: 'Maharagama' },
-  { id: 'PND', name: 'Panadura' },
-  { id: 'WAT', name: 'Wattala' },
-  { id: 'HQ',  name: 'Head Office' },
-];
+// Branches are fetched dynamically from /api/branches
 
 export default function TransactionsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +20,7 @@ export default function TransactionsPage() {
   const [viewMode, setViewMode] = useState<'GLOBAL' | 'LOCAL'>('GLOBAL');
   const [filterBranchId, setFilterBranchId] = useState<string>('ALL');
   const [userProfile, setUserProfile] = useState<{ role: string, branchId: string } | null>(null);
+  const [branches, setBranches] = useState<any[]>([]);
 
   // Transfer State
   const [targetBranchId, setTargetBranchId] = useState('');
@@ -74,9 +62,22 @@ export default function TransactionsPage() {
     }
   };
 
+  const loadBranches = async () => {
+    try {
+      const res = await fetch('/api/branches');
+      if (res.ok) setBranches(await res.json());
+    } catch (e) {
+      console.error('Failed to load branches');
+    }
+  };
+
   useEffect(() => {
     loadTransactions();
   }, [viewMode, filterBranchId]);
+
+  useEffect(() => {
+    loadBranches();
+  }, []);
 
   const handleTransfer = async () => {
     try {
@@ -157,7 +158,7 @@ export default function TransactionsPage() {
                   </SelectTrigger>
                   <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
                     <SelectItem value="ALL" className="font-black text-[10px] uppercase tracking-widest">All Branches</SelectItem>
-                    {BRANCHES.map(b => (
+                    {branches.map(b => (
                       <SelectItem key={b.id} value={b.id} className="font-bold text-[10px] uppercase tracking-widest">
                         {b.name} ({b.id})
                       </SelectItem>
@@ -199,7 +200,7 @@ export default function TransactionsPage() {
                     <SelectValue placeholder="Select receiver branch..." />
                   </SelectTrigger>
                   <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                    {BRANCHES.map(b => (
+                    {branches.map(b => (
                       <SelectItem key={b.id} value={b.id} className="font-bold">
                         {b.name} ({b.id})
                       </SelectItem>

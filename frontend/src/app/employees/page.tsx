@@ -14,20 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const BRANCHES = [
-  { id: 'BRL', name: 'Borella' },
-  { id: 'DHW', name: 'Dehiwala' },
-  { id: 'DMT', name: 'Dematagoda' },
-  { id: 'HMG', name: 'Homagama' },
-  { id: 'KDW', name: 'Kadawatha' },
-  { id: 'KIR', name: 'Kiribathgoda' },
-  { id: 'KOT', name: 'Kotikawatta' },
-  { id: 'KTW', name: 'Kottawa' },
-  { id: 'MRG', name: 'Maharagama' },
-  { id: 'PND', name: 'Panadura' },
-  { id: 'WAT', name: 'Wattala' },
-  { id: 'HQ',  name: 'Head Office' },
-];
+// Branches will be fetched dynamically from /api/branches
 
 const ROLES = ['TELLER', 'ADMIN'];
 
@@ -38,6 +25,11 @@ export default function StaffPage() {
   const [isOpen, setIsOpen]           = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [branches, setBranches]       = useState<any[]>([]);
+  const [isNewBranch, setIsNewBranch] = useState(false);
+  const [newBranchId, setNewBranchId] = useState('');
+  const [newBranchName, setNewBranchName] = useState('');
 
   // Form fields
   const [email, setEmail]           = useState('');
@@ -64,18 +56,33 @@ export default function StaffPage() {
     }
   };
 
-  useEffect(() => { loadStaff(); }, []);
+  const loadBranches = async () => {
+    try {
+      const res = await fetch('/api/branches');
+      if (res.ok) {
+        setBranches(await res.json());
+      }
+    } catch (e) {
+      console.error('Failed to load branches');
+    }
+  };
+
+  useEffect(() => { 
+    loadStaff(); 
+    loadBranches();
+  }, []);
 
   // Auto-fill branch name when branch ID is selected
   const handleBranchSelect = (bid: string) => {
     setBranchId(bid);
-    const match = BRANCHES.find(b => b.id === bid);
+    const match = branches.find(b => b.id === bid);
     setBranchName(match?.name || '');
   };
 
   const resetForm = () => {
     setEmail(''); setPassword(''); setBranchId(''); setBranchName(''); setRole('TELLER');
     setEditingUser(null); setShowPassword(false);
+    setIsNewBranch(false); setNewBranchId(''); setNewBranchName('');
   };
 
   const openAdd = () => { resetForm(); setIsOpen(true); };
@@ -91,18 +98,49 @@ export default function StaffPage() {
   };
 
   const handleSave = async () => {
-    if (!email || (!editingUser && !password) || !branchId) {
-      toast.error('Missing required fields', { description: 'Email, Password and Branch are required.' });
+    if (!email || (!editingUser && !password)) {
+      toast.error('Missing required fields', { description: 'Email and Password are required.' });
       return;
     }
+
+    if (isNewBranch && (!newBranchId || !newBranchName)) {
+      toast.error('Missing branch info', { description: 'Please enter ID and Name for the new branch.' });
+      return;
+    }
+
+    if (!isNewBranch && !branchId) {
+      toast.error('Missing branch', { description: 'Please select a branch.' });
+      return;
+    }
+
     setIsSaving(true);
     const toastId = toast.loading(editingUser ? 'Updating user account...' : 'Creating user account...');
 
     try {
+      let finalBranchId = branchId;
+      let finalBranchName = branchName;
+
+      // Handle New Branch Creation first
+      if (isNewBranch) {
+        const bRes = await fetch('/api/branches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: newBranchId, name: newBranchName }),
+        });
+        if (!bRes.ok) {
+          const bErr = await bRes.json();
+          throw new Error(bErr.error || 'Failed to create new branch');
+        }
+        const bData = await bRes.json();
+        finalBranchId = bData.id;
+        finalBranchName = bData.name;
+        loadBranches(); // refresh list in background
+      }
+
       const url    = editingUser ? `/api/staff/${editingUser.id}` : '/api/staff';
       const method = editingUser ? 'PATCH' : 'POST';
 
-      const body: any = { email, branchId, branchName, role };
+      const body: any = { email, branchId: finalBranchId, branchName: finalBranchName, role };
       if (password) body.password = password;
 
       const res = await fetch(url, {
@@ -254,38 +292,76 @@ export default function StaffPage() {
                 </div>
               </div>
 
-              {/* Branch */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                    <Building2 className="w-3 h-3" /> Branch
-                  </Label>
-                  <Select value={branchId} onValueChange={(v) => v && handleBranchSelect(v)}>
-                    <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
-                      <SelectValue placeholder="Select branch" />
-                    </SelectTrigger>
-                    <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                      {BRANCHES.map(b => (
-                        <SelectItem key={b.id} value={b.id} className="font-bold">
-                          {b.name} ({b.id})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Assignment</Label>
+                  {!editingUser && (
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setIsNewBranch(!isNewBranch)} 
+                      className="h-6 text-[9px] font-black uppercase text-primary hover:text-primary hover:bg-primary/5"
+                    >
+                      {isNewBranch ? "Select Existing" : "+ Create New Branch"}
+                    </Button>
+                  )}
                 </div>
-                <div className="grid gap-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Role</Label>
-                  <Select value={role} onValueChange={(v) => v && setRole(v)}>
-                    <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                      {ROLES.map(r => (
-                        <SelectItem key={r} value={r} className="font-bold">{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+
+                {isNewBranch ? (
+                  <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                    <div className="grid gap-2">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Name</Label>
+                      <Input 
+                        value={newBranchName} 
+                        onChange={e => setNewBranchName(e.target.value)} 
+                        placeholder="E.g. Kandana" 
+                        className="h-12 bg-white/50 rounded-xl"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">ID (3 Letters)</Label>
+                      <Input 
+                        value={newBranchId} 
+                        onChange={e => setNewBranchId(e.target.value.toUpperCase())} 
+                        placeholder="KND" 
+                        maxLength={3}
+                        className="h-12 bg-white/50 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                        <Building2 className="w-3 h-3" /> Select Branch
+                      </Label>
+                      <Select value={branchId} onValueChange={(v) => v && handleBranchSelect(v)}>
+                        <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                        <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
+                          {branches.map(b => (
+                            <SelectItem key={b.id} value={b.id} className="font-bold">
+                              {b.name} ({b.id})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Role</Label>
+                      <Select value={role} onValueChange={(v) => v && setRole(v)}>
+                        <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
+                          {ROLES.map(r => (
+                            <SelectItem key={r} value={r} className="font-bold">{r}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Branch name preview */}
