@@ -38,11 +38,14 @@ export async function POST(request: Request) {
     if (!supabase) return NextResponse.json({ error: 'Supabase not initialized' }, { status: 500 });
 
     const { name, id } = await request.json();
+    console.log('[DEBUG] POST /api/branches started:', { name, id });
 
     if (!name || !id) {
+      console.log('[DEBUG] POST /api/branches missing name or id');
       return NextResponse.json({ error: 'Missing name or id' }, { status: 400 });
     }
 
+    console.log('[DEBUG] POST /api/branches inserting into branches table...');
     const { data, error } = await supabase
       .from('branches')
       .insert([{
@@ -54,15 +57,19 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+       console.error('[DEBUG] POST /api/branches insert error:', error);
+       throw error;
+    }
     
-    // Also initialize status in branch_status table
+    console.log('[DEBUG] POST /api/branches upserting into branch_status...');
     await supabase.from('branch_status').upsert({
       branch_id: id.toUpperCase(),
       status: 'CLOSED',
       updated_at: new Date().toISOString()
     });
 
+    console.log('[DEBUG] POST /api/branches finished successfully');
     return NextResponse.json(data, { status: 201 });
   } catch (error: any) {
     console.error('Branches POST failed:', error);

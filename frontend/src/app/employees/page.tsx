@@ -120,8 +120,15 @@ export default function StaffPage() {
       let finalBranchId = branchId;
       let finalBranchName = branchName;
 
+      // Ensure branchName is captured from the branches list if missing
+      if (!finalBranchName && finalBranchId) {
+        const bMatch = branches.find(b => b.id === finalBranchId);
+        if (bMatch) finalBranchName = bMatch.name;
+      }
+
       // Handle New Branch Creation first
       if (isNewBranch) {
+        console.log('Creating new branch:', { newBranchId, newBranchName });
         const bRes = await fetch('/api/branches', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -140,9 +147,15 @@ export default function StaffPage() {
       const url    = editingUser ? `/api/staff/${editingUser.id}` : '/api/staff';
       const method = editingUser ? 'PATCH' : 'POST';
 
-      const body: any = { email, branchId: finalBranchId, branchName: finalBranchName, role };
+      const body: any = { 
+        email, 
+        branchId: finalBranchId, 
+        branchName: finalBranchName, 
+        role 
+      };
       if (password) body.password = password;
 
+      console.log('Saving staff member:', body);
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -292,84 +305,84 @@ export default function StaffPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Assignment</Label>
-                  {!editingUser && (
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => setIsNewBranch(!isNewBranch)} 
-                      className="h-6 text-[9px] font-black uppercase text-primary hover:text-primary hover:bg-primary/5"
-                    >
-                      {isNewBranch ? "Select Existing" : "+ Create New Branch"}
-                    </Button>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Assignment</Label>
+                    {!editingUser && (
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setIsNewBranch(!isNewBranch)} 
+                        className="h-6 text-[9px] font-black uppercase text-primary hover:text-primary hover:bg-primary/5"
+                      >
+                        {isNewBranch ? "Select Existing" : "+ Create New Branch"}
+                      </Button>
+                    )}
+                  </div>
+
+                  {isNewBranch ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                      <div className="grid gap-2">
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Name</Label>
+                        <Input 
+                          value={newBranchName} 
+                          onChange={e => setNewBranchName(e.target.value)} 
+                          placeholder="E.g. Kandana" 
+                          className="h-12 bg-white/50 rounded-xl"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">ID (3 Letters)</Label>
+                        <Input 
+                          value={newBranchId} 
+                          onChange={e => setNewBranchId(e.target.value.toUpperCase())} 
+                          placeholder="KND" 
+                          maxLength={10}
+                          className="h-12 bg-white/50 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+                      <div className="grid gap-2 min-w-0">
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                          <Building2 className="w-3 h-3" /> Select Branch
+                        </Label>
+                        <Select value={branchId} onValueChange={(v) => v && handleBranchSelect(v)}>
+                          <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm w-full overflow-hidden min-w-0">
+                            <SelectValue placeholder="Select branch" className="truncate" />
+                          </SelectTrigger>
+                          <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl max-w-[90vw]">
+                            {branches.map(b => (
+                              <SelectItem key={b.id} value={b.id} className="font-bold whitespace-nowrap">
+                                {b.name} ({b.id.length > 8 ? `${b.id.substring(0, 8)}...` : b.id})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2 min-w-0">
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Role</Label>
+                        <Select value={role} onValueChange={(v) => v && setRole(v)}>
+                          <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
+                            {ROLES.map(r => (
+                              <SelectItem key={r} value={r} className="font-bold">{r}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   )}
                 </div>
-
-                {isNewBranch ? (
-                  <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
-                    <div className="grid gap-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Branch Name</Label>
-                      <Input 
-                        value={newBranchName} 
-                        onChange={e => setNewBranchName(e.target.value)} 
-                        placeholder="E.g. Kandana" 
-                        className="h-12 bg-white/50 rounded-xl"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">ID (3 Letters)</Label>
-                      <Input 
-                        value={newBranchId} 
-                        onChange={e => setNewBranchId(e.target.value.toUpperCase())} 
-                        placeholder="KND" 
-                        maxLength={3}
-                        className="h-12 bg-white/50 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                        <Building2 className="w-3 h-3" /> Select Branch
-                      </Label>
-                      <Select value={branchId} onValueChange={(v) => v && handleBranchSelect(v)}>
-                        <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
-                          <SelectValue placeholder="Select branch" />
-                        </SelectTrigger>
-                        <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                          {branches.map(b => (
-                            <SelectItem key={b.id} value={b.id} className="font-bold">
-                              {b.name} ({b.id})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Role</Label>
-                      <Select value={role} onValueChange={(v) => v && setRole(v)}>
-                        <SelectTrigger className="h-12 bg-white/50 rounded-xl font-bold text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="glass border-white/40 rounded-2xl shadow-2xl">
-                          {ROLES.map(r => (
-                            <SelectItem key={r} value={r} className="font-bold">{r}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               {/* Branch name preview */}
               {branchName && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
                   <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                  <span className="text-primary font-black text-sm">
-                    Will be assigned to: <span className="font-black">{branchName}</span> ({branchId})
+                  <span className="text-primary font-black text-sm truncate pr-2">
+                    Will be assigned to: <span className="font-black">{branchName}</span> ({branchId.length > 8 ? `${branchId.substring(0, 8)}...` : branchId})
                   </span>
                 </div>
               )}
@@ -441,8 +454,8 @@ export default function StaffPage() {
                     {user.branch_name || '—'}
                   </TableCell>
                   <TableCell className="px-8 py-5">
-                    <span className="font-black text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-lg tracking-widest">
-                      {user.branch_id || '—'}
+                    <span className="font-black text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-lg tracking-widest" title={user.branch_id}>
+                      {(user.branch_id && user.branch_id.length > 8) ? `${user.branch_id.substring(0, 8)}...` : (user.branch_id || '—')}
                     </span>
                   </TableCell>
                   <TableCell className="px-8 py-5">

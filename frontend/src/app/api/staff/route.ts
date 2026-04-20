@@ -54,21 +54,33 @@ export async function POST(request: Request) {
     if (!supabase) return NextResponse.json({ error: 'Supabase not initialized' }, { status: 500 });
 
     const { email, password, branchId, branchName, role } = await request.json();
+    console.log('[DEBUG] POST /api/staff started:', { email, branchId, branchName, role });
 
     if (!email || !password || !branchId || !branchName) {
+      console.log('[DEBUG] POST /api/staff missing fields');
       return NextResponse.json({ error: 'Missing required fields: email, password, branchId, branchName' }, { status: 400 });
     }
 
     // 1. Create the Supabase auth user
+    console.log('[DEBUG] POST /api/staff creating auth user...');
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true, // auto-confirm so they can login immediately
     });
 
-    if (createError) throw createError;
+    if (createError) {
+      console.error('[DEBUG] POST /api/staff auth creation error:', createError);
+      throw createError;
+    }
+
+    if (!newUser.user) {
+       console.error('[DEBUG] POST /api/staff auth user created but newUser.user is null');
+       throw new Error('Auth user creation failed (no user object returned)');
+    }
 
     // 2. Create the profile record
+    console.log('[DEBUG] POST /api/staff creating profile record for user:', newUser.user.id);
     const { error: profileError } = await supabase.from('profiles').insert({
       id: newUser.user.id,
       email,
@@ -78,8 +90,12 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     });
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('[DEBUG] POST /api/staff profile creation error:', profileError);
+      throw profileError;
+    }
 
+    console.log('[DEBUG] POST /api/staff finished successfully');
     return NextResponse.json({ success: true, userId: newUser.user.id }, { status: 201 });
   } catch (error: any) {
     console.error('Staff POST error:', error);
