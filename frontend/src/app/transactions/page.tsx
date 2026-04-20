@@ -148,7 +148,7 @@ export default function TransactionsPage() {
 
               {/* Branch Filter (Only in Global Mode) */}
               {viewMode === 'GLOBAL' && (
-                <Select value={filterBranchId} onValueChange={setFilterBranchId}>
+                <Select value={filterBranchId} onValueChange={(val) => val && setFilterBranchId(val)}>
                   <SelectTrigger className="h-12 w-full sm:w-[200px] rounded-2xl border-slate-200 font-bold text-[10px] uppercase tracking-widest transition-all glass">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-3.5 h-3.5 text-primary" />
@@ -207,18 +207,19 @@ export default function TransactionsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            <div className="grid gap-2">
-              <Label className="font-medium text-slate-700">Transfer Capital Amount (Rs.)</Label>
-              <Input value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="500000" className="border-slate-300" />
+              <div className="grid gap-2">
+                <Label className="font-medium text-slate-700">Transfer Capital Amount (Rs.)</Label>
+                <Input value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="500000" className="border-slate-300" />
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-medium text-slate-700">Audit Reference Log</Label>
+                <Input value={description} onChange={e=>setDescription(e.target.value)} placeholder="E.g. Daily Vault Balancing" />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label className="font-medium text-slate-700">Audit Reference Log</Label>
-              <Input value={description} onChange={e=>setDescription(e.target.value)} placeholder="E.g. Daily Vault Balancing" />
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button onClick={handleTransfer} className="bg-slate-900 hover:bg-slate-800 font-semibold text-white">Execute Transfer</Button>
             </div>
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button onClick={handleTransfer} className="bg-slate-900 hover:bg-slate-800 font-semibold text-white">Execute Transfer</Button>
           </div>
         </DialogContent>
       </Dialog>
