@@ -133,15 +133,17 @@ export default function ExecutiveDashboard() {
   const totalVault = vaults.reduce((sum, v) => sum + (v.balance || 0), 0);
   const branches = [
     { id: "BRL", name: "Borella" },
-    { id: "KOT", name: "Kotikawatta" },
-    { id: "DMT", name: "Dematagoda" },
-    { id: "WAT", name: "Wattala" },
-    { id: "KIR", name: "Kiribathgoda" },
-    { id: "KDW", name: "Kadawatha" },
     { id: "DHW", name: "Dehiwala" },
-    { id: "PND", name: "Panadura" },
-    { id: "KTW", name: "Kottawa" },
+    { id: "DMT", name: "Dematagoda" },
     { id: "HMG", name: "Homagama" },
+    { id: "KDW", name: "Kadawatha" },
+    { id: "KIR", name: "Kiribathgoda" },
+    { id: "KOT", name: "Kotikawatta" },
+    { id: "KTW", name: "Kottawa" },
+    { id: "MRG", name: "Maharagama" },
+    { id: "PND", name: "Panadura" },
+    { id: "WAT", name: "Wattala" },
+    { id: "HQ",  name: "Head Office" },
   ];
 
   return (

@@ -16,17 +16,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 
 const BRANCHES = [
-  { id: 'ALL',  name: 'All Branches' },
-  { id: 'BRL',  name: 'Borella' },
-  { id: 'KOT',  name: 'Kotikawatta' },
-  { id: 'DMT',  name: 'Dematagoda' },
-  { id: 'WAT',  name: 'Wattala' },
-  { id: 'KIR',  name: 'Kiribathgoda' },
-  { id: 'KDW',  name: 'Kadawatha' },
-  { id: 'DHW',  name: 'Dehiwala' },
-  { id: 'PND',  name: 'Panadura' },
-  { id: 'KTW',  name: 'Kottawa' },
-  { id: 'HMG',  name: 'Homagama' },
+  { id: 'ALL', name: 'All Branches' },
+  { id: 'BRL', name: 'Borella' },
+  { id: 'DHW', name: 'Dehiwala' },
+  { id: 'DMT', name: 'Dematagoda' },
+  { id: 'HMG', name: 'Homagama' },
+  { id: 'KDW', name: 'Kadawatha' },
+  { id: 'KIR', name: 'Kiribathgoda' },
+  { id: 'KOT', name: 'Kotikawatta' },
+  { id: 'KTW', name: 'Kottawa' },
+  { id: 'MRG', name: 'Maharagama' },
+  { id: 'PND', name: 'Panadura' },
+  { id: 'WAT', name: 'Wattala' },
+  { id: 'HQ',  name: 'Head Office' },
 ];
 
 export default function PawnesPage() {

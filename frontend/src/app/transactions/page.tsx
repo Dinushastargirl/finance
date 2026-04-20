@@ -13,16 +13,16 @@ import { cn } from "@/lib/utils"
 
 const BRANCHES = [
   { id: 'BRL', name: 'Borella' },
-  { id: 'KOT', name: 'Kotikawatta' },
-  { id: 'MRG', name: 'Maharagama' },
-  { id: 'WAT', name: 'Wattala' },
-  { id: 'KIR', name: 'Kiribathgoda' },
-  { id: 'DMT', name: 'Dematagoda' },
-  { id: 'KDW', name: 'Kadawatha' },
   { id: 'DHW', name: 'Dehiwala' },
-  { id: 'PND', name: 'Panadura' },
-  { id: 'KTW', name: 'Kottawa' },
+  { id: 'DMT', name: 'Dematagoda' },
   { id: 'HMG', name: 'Homagama' },
+  { id: 'KDW', name: 'Kadawatha' },
+  { id: 'KIR', name: 'Kiribathgoda' },
+  { id: 'KOT', name: 'Kotikawatta' },
+  { id: 'KTW', name: 'Kottawa' },
+  { id: 'MRG', name: 'Maharagama' },
+  { id: 'PND', name: 'Panadura' },
+  { id: 'WAT', name: 'Wattala' },
   { id: 'HQ',  name: 'Head Office' },
 ];
 
@@ -55,10 +55,11 @@ export default function TransactionsPage() {
       
       // Multi-tenant isolation logic
       if (effectiveViewMode === 'LOCAL' && branchId) {
-        query = query.eq('branch_id', branchId);
+        // Show transactions where this branch is either the source or destination
+        query = query.or(`branch_id.eq.${branchId},targetBranchId.eq.${branchId}`);
       } else if (effectiveViewMode === 'GLOBAL' && filterBranchId !== 'ALL') {
         // Admin branch filter in global view
-        query = query.eq('branch_id', filterBranchId);
+        query = query.or(`branch_id.eq.${filterBranchId},targetBranchId.eq.${filterBranchId}`);
       }
 
       const { data, error } = await query;
@@ -121,8 +122,8 @@ export default function TransactionsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-          {/* Visibility Toggle (Admin Only) */}
-          {userProfile?.role === 'ADMIN' && (
+          {/* Visibility Toggle (HQ Admin Only) */}
+          {userProfile?.role === 'ADMIN' && userProfile?.branchId === 'HQ' && (
             <>
               <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
                 <button 
